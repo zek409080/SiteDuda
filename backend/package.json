@@ -1,0 +1,45 @@
+{
+  "name": "agenda-backend",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "API da agenda pessoal",
+  "scripts": {
+    "dev": "node --watch src/server.js",
+    "start": "node src/server.js",
+    "db:generate": "prisma generate",
+    "db:push": "prisma db push",
+    "db:migrate": "prisma migrate dev",
+    "db:deploy": "prisma migrate deploy",
+    "db:studio": "prisma studio",
+    "seed": "node prisma/seed.js",
+    "seed:clear": "node prisma/seed.js --clear",
+    "test": "node --test tests/*.test.js",
+    "db:local:start": "node scripts/db-control.js start",
+    "db:local:stop": "node scripts/db-control.js stop",
+    "db:local:status": "node scripts/db-control.js status"
+  },
+  "prisma": {
+    "seed": "node prisma/seed.js"
+  },
+  "dependencies": {
+    "@prisma/client": "^6.2.1",
+    "bcryptjs": "^2.4.3",
+    "cookie-parser": "^1.4.7",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.7",
+    "express": "^4.21.2",
+    "express-rate-limit": "^7.5.0",
+    "helmet": "^8.0.0",
+    "jsonwebtoken": "^9.0.2",
+    "zod": "^3.24.1"
+  },
+  "devDependencies": {
+    "prisma": "^6.2.1"
+  },
+  "allowScripts": {
+    "@prisma/client@6.19.3": true,
+    "prisma@6.19.3": true,
+    "@prisma/engines@6.19.3": true
+  }
+}

@@ -1,0 +1,33 @@
+2026-09-09 19:36:43.186 -03 [12876] LOG:  iniciando PostgreSQL 17.11 on x86_64-windows, compiled by msvc-19.44.35228, 64-bit
+2026-09-09 19:36:43.193 -03 [12876] LOG:  escutando no endereÁo IPv6 "::1", porta 5433
+2026-09-09 19:36:43.193 -03 [12876] LOG:  escutando no endereÁo IPv4 "127.0.0.1", porta 5433
+2026-09-09 19:36:43.269 -03 [13336] LOG:  sistema de banco de dados foi desligado em 2026-09-09 19:36:16 -03
+2026-09-09 19:36:43.293 -03 [12876] LOG:  sistema de banco de dados est· pronto para aceitar conexıes
+2026-09-09 19:37:55.559 -03 [12876] LOG:  SIGHUP recebido, recarregando arquivos de configuraÁ„o
+2026-09-09 19:37:55.562 -03 [12876] LOG:  o tipo de conex„o "Ôªø" n„o È v·lido
+2026-09-09 19:37:55.562 -03 [12876] CONTEXTO:  linha 1 do arquivo de configuraÁ„o "C:/Users/eduar/OneDrive/¡rea de Trabalho/SiteDuda/backend/.pgdata/pg_hba.conf"
+2026-09-09 19:37:55.562 -03 [12876] LOG:  C:/Users/eduar/OneDrive/¡rea de Trabalho/SiteDuda/backend/.pgdata/pg_hba.conf n„o foi recarregado
+2026-09-09 19:37:56.908 -03 [3368] LOG:  o tipo de conex„o "Ôªø" n„o È v·lido
+2026-09-09 19:37:56.908 -03 [3368] CONTEXTO:  linha 1 do arquivo de configuraÁ„o "C:/Users/eduar/OneDrive/¡rea de Trabalho/SiteDuda/backend/.pgdata/pg_hba.conf"
+2026-09-09 19:37:56.908 -03 [3368] FATAL:  n„o foi possÌvel carregar C:/Users/eduar/OneDrive/¡rea de Trabalho/SiteDuda/backend/.pgdata/pg_hba.conf
+2026-09-09 19:38:13.877 -03 [12876] LOG:  SIGHUP recebido, recarregando arquivos de configuraÁ„o
+2026-09-09 19:38:31.283 -03 [21888] ERRO:  rela√ß√£o "_prisma_migrations" n√£o existe no caractere 126
+2026-09-09 19:38:31.283 -03 [21888] COMANDO:  SELECT "id", "checksum", "finished_at", "migration_name", "logs", "rolled_back_at", "started_at", "applied_steps_count" FROM "_prisma_migrations" ORDER BY "started_at" ASC
+2026-09-09 19:38:31.594 -03 [9764] LOG:  checkpoint starting: immediate force wait
+2026-09-09 19:38:31.818 -03 [9764] LOG:  checkpoint complete: wrote 969 buffers (5.9%); 1 WAL file(s) added, 0 removed, 0 recycled; write=0.036 s, sync=0.140 s, total=0.225 s; sync files=303, longest=0.003 s, average=0.001 s; distance=9094 kB, estimate=9094 kB; lsn=0/1E55F08, redo lsn=0/1E55EB0
+2026-09-09 19:38:32.235 -03 [9764] LOG:  checkpoint starting: immediate force wait
+2026-09-09 19:38:32.244 -03 [9764] LOG:  checkpoint complete: wrote 4 buffers (0.0%); 0 WAL file(s) added, 0 removed, 1 recycled; write=0.002 s, sync=0.002 s, total=0.009 s; sync files=4, longest=0.001 s, average=0.001 s; distance=4543 kB, estimate=8639 kB; lsn=0/22C5D08, redo lsn=0/22C5CB0
+2026-09-09 19:43:32.255 -03 [9764] LOG:  checkpoint starting: time
+2026-09-09 19:43:46.889 -03 [9764] LOG:  checkpoint complete: wrote 135 buffers (0.8%); 0 WAL file(s) added, 0 removed, 0 recycled; write=14.602 s, sync=0.028 s, total=14.634 s; sync files=72, longest=0.002 s, average=0.001 s; distance=617 kB, estimate=7837 kB; lsn=0/23601F0, redo lsn=0/2360160
+2026-09-09 19:46:04.820 -03 [3232] LOG:  n√£o foi poss√≠vel receber dados do cliente: An existing connection was forcibly closed by the remote host.
+	
+2026-09-09 19:46:04.820 -03 [23368] LOG:  n√£o foi poss√≠vel receber dados do cliente: An existing connection was forcibly closed by the remote host.
+	
+2026-09-09 19:46:04.820 -03 [21756] LOG:  n√£o foi poss√≠vel receber dados do cliente: An existing connection was forcibly closed by the remote host.
+	
+2026-09-09 19:46:04.820 -03 [19820] LOG:  n√£o foi poss√≠vel receber dados do cliente: An existing connection was forcibly closed by the remote host.
+	
+2026-09-09 19:48:32.891 -03 [9764] LOG:  checkpoint starting: time
+2026-09-09 19:48:33.769 -03 [9764] LOG:  checkpoint complete: wrote 9 buffers (0.1%); 0 WAL file(s) added, 0 removed, 0 recycled; write=0.869 s, sync=0.005 s, total=0.878 s; sync files=9, longest=0.001 s, average=0.001 s; distance=15 kB, estimate=7055 kB; lsn=0/2363DE0, redo lsn=0/2363D88
+2026-09-09 19:53:32.772 -03 [9764] LOG:  checkpoint starting: time
+2026-09-09 19:53:33.655 -03 [9764] LOG:  checkpoint complete: wrote 9 buffers (0.1%); 0 WAL file(s) added, 0 removed, 0 recycled; write=0.874 s, sync=0.005 s, total=0.883 s; sync files=9, longest=0.001 s, average=0.001 s; distance=15 kB, estimate=6351 kB; lsn=0/2367C70, redo lsn=0/2367C18

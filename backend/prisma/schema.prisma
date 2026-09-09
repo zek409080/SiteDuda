@@ -1,0 +1,76 @@
+// Agenda pessoal — schema do banco de dados
+// Banco: PostgreSQL   ORM: Prisma
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+/// Estados possiveis de um atendimento.
+enum AppointmentStatus {
+  AGENDADO
+  CONFIRMADO
+  REALIZADO
+  CANCELADO
+  FALTOU
+}
+
+/// Pessoa atendida pela profissional.
+model Client {
+  id        String    @id @default(uuid())
+  name      String    @db.VarChar(120)
+  phone     String    @db.VarChar(30)
+  email     String?   @db.VarChar(160)
+  birthDate DateTime? @map("birth_date") @db.Date
+  notes     String?   @db.Text
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime  @updatedAt @map("updated_at")
+
+  appointments Appointment[]
+
+  @@index([name])
+  @@map("clients")
+}
+
+/// Um atendimento na agenda.
+/// A data fica em uma coluna DATE e os horarios em texto "HH:MM",
+/// para que a agenda nao dependa do fuso horario do servidor.
+model Appointment {
+  id        String            @id @default(uuid())
+  clientId  String            @map("client_id")
+  date      DateTime          @db.Date
+  startTime String            @map("start_time") @db.VarChar(5)
+  endTime   String            @map("end_time") @db.VarChar(5)
+  status    AppointmentStatus @default(AGENDADO)
+  type      String            @default("Consulta") @db.VarChar(60)
+  notes     String?           @db.Text
+  createdAt DateTime          @default(now()) @map("created_at")
+  updatedAt DateTime          @updatedAt @map("updated_at")
+
+  client Client @relation(fields: [clientId], references: [id], onDelete: Cascade)
+
+  @@index([date])
+  @@index([clientId])
+  @@map("appointments")
+}
+
+/// Linha unica de configuracao do sistema (id sempre = 1).
+model Settings {
+  id               Int      @id @default(1)
+  professionalName String   @map("professional_name") @db.VarChar(120)
+  workStart        String   @map("work_start") @db.VarChar(5)
+  workEnd          String   @map("work_end") @db.VarChar(5)
+  defaultDuration  Int      @map("default_duration")
+  /// Dias de atendimento: 0 = domingo ... 6 = sabado
+  workDays         Int[]    @map("work_days")
+  /// Hash bcrypt do PIN. O PIN em texto puro nunca e gravado.
+  accessPin        String   @map("access_pin") @db.VarChar(120)
+  createdAt        DateTime @default(now()) @map("created_at")
+  updatedAt        DateTime @updatedAt @map("updated_at")
+
+  @@map("settings")
+}
