@@ -35,7 +35,9 @@ const production = nodeEnv === 'production' || hostedPlatform;
 // Em producao o backend entrega o proprio frontend, entao tudo vem da mesma
 // origem e nao existe requisicao cross-origin legitima para liberar.
 // Em desenvolvimento o Vite roda em outra porta e precisa ser autorizado.
-const corsOrigin = process.env.CORS_ORIGIN ?? (production ? false : 'http://localhost:5173');
+// Um CORS_ORIGIN explicito vence; vazio conta como nao definido.
+const corsOrigin =
+  process.env.CORS_ORIGIN?.trim() || (production ? false : 'http://localhost:5173');
 
 export const env = {
   nodeEnv,
