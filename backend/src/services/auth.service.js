@@ -30,11 +30,16 @@ export function readToken(token) {
   }
 }
 
-export function cookieOptions() {
+/// Opcoes do cookie de sessao.
+/// A flag `secure` segue o protocolo real da requisicao (`req.secure`, que
+/// considera o X-Forwarded-Proto do proxy). Assim o cookie ganha `Secure`
+/// automaticamente sob HTTPS e continua funcionando em http://localhost —
+/// sem depender de ninguem lembrar de configurar NODE_ENV na hospedagem.
+export function cookieOptions(req) {
   return {
     httpOnly: true,
     sameSite: 'lax',
-    secure: isProduction, // exige HTTPS quando publicado
+    secure: req?.secure ?? isProduction,
     maxAge: env.sessionMaxAgeDays * 24 * 60 * 60 * 1000,
     path: '/',
   };

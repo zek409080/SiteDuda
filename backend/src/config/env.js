@@ -18,8 +18,19 @@ function required(name, fallback) {
   return value;
 }
 
-const nodeEnv = process.env.NODE_ENV ?? 'development';
-const production = nodeEnv === 'production';
+// Plataformas de hospedagem definem estas variaveis sozinhas. Se estamos
+// rodando em uma delas, tratamos como producao mesmo que NODE_ENV nao tenha
+// sido configurado — assim um esquecimento na hospedagem nao deixa o sistema
+// no ar com as folgas do modo de desenvolvimento.
+const hostedPlatform = Boolean(
+  process.env.RAILWAY_ENVIRONMENT ||
+    process.env.RAILWAY_PUBLIC_DOMAIN ||
+    process.env.RENDER ||
+    process.env.FLY_APP_NAME,
+);
+
+const nodeEnv = process.env.NODE_ENV ?? (hostedPlatform ? 'production' : 'development');
+const production = nodeEnv === 'production' || hostedPlatform;
 
 // Em producao o backend entrega o proprio frontend, entao tudo vem da mesma
 // origem e nao existe requisicao cross-origin legitima para liberar.

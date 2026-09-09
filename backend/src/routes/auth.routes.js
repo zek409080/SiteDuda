@@ -27,7 +27,7 @@ router.post('/login', loginLimiter, validate(pinSchema), async (req, res, next) 
     const ok = await verifyPin(req.body.pin);
     if (!ok) return res.status(401).json({ error: 'PIN incorreto' });
 
-    res.cookie(SESSION_COOKIE, issueToken(), cookieOptions());
+    res.cookie(SESSION_COOKIE, issueToken(), cookieOptions(req));
     const settings = await getSettings();
     res.json({ ok: true, settings: publicSettings(settings) });
   } catch (err) {
@@ -36,7 +36,7 @@ router.post('/login', loginLimiter, validate(pinSchema), async (req, res, next) 
 });
 
 router.post('/logout', (req, res) => {
-  res.clearCookie(SESSION_COOKIE, { ...cookieOptions(), maxAge: undefined });
+  res.clearCookie(SESSION_COOKIE, { ...cookieOptions(req), maxAge: undefined });
   res.json({ ok: true });
 });
 

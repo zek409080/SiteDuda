@@ -29,22 +29,25 @@ function start() {
 function client(baseUrl) {
   let cookie = '';
   async function call(path, options = {}) {
+    const { extraHeaders, ...rest } = options;
     const res = await fetch(`${baseUrl}${path}`, {
-      ...options,
+      ...rest,
       headers: {
         ...(options.body ? { 'Content-Type': 'application/json' } : {}),
         ...(cookie ? { Cookie: cookie } : {}),
+        ...extraHeaders,
       },
     });
     const setCookie = res.headers.get('set-cookie');
     if (setCookie) cookie = setCookie.split(';')[0];
     const text = await res.text();
     const body = text ? JSON.parse(text) : null;
-    return { status: res.status, body };
+    return { status: res.status, body, setCookie };
   }
   return {
-    get: (path) => call(path),
-    post: (path, data) => call(path, { method: 'POST', body: JSON.stringify(data) }),
+    get: (path, extraHeaders) => call(path, { extraHeaders }),
+    post: (path, data, extraHeaders) =>
+      call(path, { method: 'POST', body: JSON.stringify(data), extraHeaders }),
     put: (path, data) => call(path, { method: 'PUT', body: JSON.stringify(data) }),
     del: (path) => call(path, { method: 'DELETE' }),
   };
@@ -83,6 +86,28 @@ test('fluxo completo da API', async (t) => {
   await t.test('GET /api/auth/session confirma a sessao', async () => {
     const { status } = await api.get('/api/auth/session');
     assert.equal(status, 200);
+  });
+
+  await t.test('cookie de sessao e httpOnly e nao vaza para JavaScript', async () => {
+    const { setCookie } = await api.post('/api/auth/login', { pin: env.initialPin });
+    assert.match(setCookie, /HttpOnly/i);
+    assert.match(setCookie, /SameSite=Lax/i);
+  });
+
+  await t.test('sob HTTPS o cookie recebe a flag Secure', async () => {
+    // X-Forwarded-Proto e o header que o proxy do Railway/Render envia.
+    // Com "trust proxy" ligado, req.secure fica true e o cookie deve exigir HTTPS.
+    const { setCookie } = await api.post(
+      '/api/auth/login',
+      { pin: env.initialPin },
+      { 'X-Forwarded-Proto': 'https' },
+    );
+    assert.match(setCookie, /Secure/, 'cookie deveria ter a flag Secure atras de HTTPS');
+  });
+
+  await t.test('em http local o cookie nao exige HTTPS (senao o login quebraria)', async () => {
+    const { setCookie } = await api.post('/api/auth/login', { pin: env.initialPin });
+    assert.ok(!/;\s*Secure/i.test(setCookie), 'cookie nao deveria exigir HTTPS em http local');
   });
 
   await t.test('criar cliente invalido retorna 400 com detalhes', async () => {
