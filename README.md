@@ -232,10 +232,51 @@ mês, criar/editar/cancelar agendamento, cadastro e busca de clientes,
 responsividade no celular) foi verificado manualmente no navegador durante o
 desenvolvimento.
 
-## Deploy em produção
+## Deploy no Railway (caminho recomendado)
 
-Passos gerais (os detalhes variam conforme o provedor escolhido — Railway,
-Render, um VPS próprio, etc.):
+O projeto já vem pronto para o Railway: o `package.json` da raiz e o
+`railway.json` cuidam de instalar tudo, compilar o frontend, aplicar as
+migrations e subir o servidor. O backend serve o frontend compilado na mesma
+origem, então **um único serviço** atende tudo.
+
+1. Acesse [railway.app](https://railway.app) e entre com a conta do GitHub.
+2. **New Project → Deploy from GitHub repo** e escolha o repositório
+   `zek409080/SiteDuda`.
+3. No mesmo projeto, clique em **+ New → Database → Add PostgreSQL**. O
+   Railway cria o banco e a variável `DATABASE_URL` automaticamente.
+4. Abra o serviço da aplicação → aba **Variables** e adicione:
+
+   | Variável | Valor |
+   |---|---|
+   | `DATABASE_URL` | `${{Postgres.DATABASE_URL}}` (referência ao banco criado) |
+   | `SESSION_SECRET` | uma chave aleatória longa (veja o comando abaixo) |
+   | `ACCESS_PIN` | o PIN inicial de acesso, ex.: `4291` |
+   | `NODE_ENV` | `production` |
+
+   Para gerar o `SESSION_SECRET`:
+
+   ```bash
+   node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
+   ```
+
+   Não é preciso definir `PORT` — o Railway injeta sozinho.
+
+5. Em **Settings → Networking**, clique em **Generate Domain**. O Railway
+   devolve uma URL pública com HTTPS já configurado, do tipo
+   `https://siteduda-production.up.railway.app`.
+6. Abra a URL, digite o PIN e a agenda está no ar, acessível de qualquer
+   celular ou computador.
+
+A partir daí, todo `git push` para a branch `main` publica a nova versão
+automaticamente.
+
+> Os dados de teste (`npm run seed`) são para uso local. Em produção o banco
+> começa vazio, com apenas a configuração inicial criada automaticamente.
+
+## Deploy em outros provedores
+
+Passos gerais (os detalhes variam conforme o provedor escolhido — Render,
+um VPS próprio, etc.):
 
 1. **Banco de dados:** crie um PostgreSQL gerenciado (Neon, Supabase,
    Railway, RDS...) e copie a `DATABASE_URL` de produção.

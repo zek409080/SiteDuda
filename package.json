@@ -1,0 +1,16 @@
+{
+  "name": "minha-agenda",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Agenda pessoal para psicologa — frontend React + API Express + PostgreSQL",
+  "scripts": {
+    "build": "npm install --include=dev --prefix backend && npm install --include=dev --prefix frontend && npm run build --prefix frontend && npm run db:generate --prefix backend",
+    "start": "npm run db:deploy --prefix backend && node backend/src/server.js",
+    "dev:backend": "npm run dev --prefix backend",
+    "dev:frontend": "npm run dev --prefix frontend",
+    "test": "npm test --prefix backend"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}
