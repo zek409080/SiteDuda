@@ -69,6 +69,18 @@ model Settings {
   workDays         Int[]    @map("work_days")
   /// Hash bcrypt do PIN. O PIN em texto puro nunca e gravado.
   accessPin        String   @map("access_pin") @db.VarChar(120)
+
+  /// Numero da "geracao" das sessoes. Todo token carrega este valor e e
+  /// conferido a cada requisicao. Incrementar aqui invalida imediatamente
+  /// todas as sessoes emitidas antes — usado ao sair e ao trocar o PIN.
+  sessionVersion   Int      @default(1) @map("session_version")
+
+  /// Contadores de tentativa de login errada. Ficam no banco (e nao em
+  /// memoria) para que reiniciar o servidor nao zere a protecao, e para que
+  /// o bloqueio nao dependa do IP, que o cliente consegue forjar.
+  failedAttempts   Int      @default(0) @map("failed_attempts")
+  lockedUntil      DateTime? @map("locked_until")
+
   createdAt        DateTime @default(now()) @map("created_at")
   updatedAt        DateTime @updatedAt @map("updated_at")
 

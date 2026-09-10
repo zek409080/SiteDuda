@@ -10,7 +10,7 @@
     "db:generate": "prisma generate",
     "db:push": "prisma db push",
     "db:migrate": "prisma migrate dev",
-    "db:deploy": "prisma migrate deploy",
+    "db:deploy": "node scripts/migrate-deploy.js",
     "db:studio": "prisma studio",
     "seed": "node prisma/seed.js",
     "seed:clear": "node prisma/seed.js --clear",
@@ -35,7 +35,12 @@
     "zod": "^3.24.1"
   },
   "devDependencies": {
-    "prisma": "^6.2.1"
+    "prisma": "^6.19.3"
+  },
+  "//overrides": "Correcoes de seguranca em dependencias indiretas, sem trocar de versao maior do Express nem do Prisma.",
+  "overrides": {
+    "qs": "^6.16.0",
+    "deepmerge-ts": "^8.0.2"
   },
   "allowScripts": {
     "@prisma/client@6.19.3": true,

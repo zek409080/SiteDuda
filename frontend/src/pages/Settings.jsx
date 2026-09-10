@@ -50,8 +50,8 @@ export default function Settings() {
     setError('');
     setSuccess(false);
 
-    if (newPin && newPin.length < 4) {
-      setError('O PIN precisa ter ao menos 4 dígitos.');
+    if (newPin && newPin.length < 6) {
+      setError('O novo PIN precisa ter ao menos 6 dígitos.');
       return;
     }
     if (newPin && newPin !== confirmPin) {
@@ -160,6 +160,9 @@ export default function Settings() {
             value={newPin}
             onChange={(e) => setNewPin(e.target.value.replace(/\D/g, '').slice(0, 20))}
           />
+          <span className="hint">
+            Mínimo de 6 dígitos. Ao trocar o PIN, você sai de todos os aparelhos conectados.
+          </span>
         </div>
 
         {newPin && (

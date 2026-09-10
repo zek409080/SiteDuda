@@ -27,10 +27,18 @@ export async function getSettings() {
   });
 }
 
-/// Versao segura para enviar ao frontend: sem o hash do PIN.
+/// Versao segura para enviar ao frontend.
+/// Monta o objeto por lista explicita: assim, se um campo interno for
+/// adicionado ao banco no futuro, ele nao vaza por esquecimento.
 export function publicSettings(settings) {
-  const { accessPin, createdAt, updatedAt, ...rest } = settings;
-  return rest;
+  return {
+    id: settings.id,
+    professionalName: settings.professionalName,
+    workStart: settings.workStart,
+    workEnd: settings.workEnd,
+    defaultDuration: settings.defaultDuration,
+    workDays: settings.workDays,
+  };
 }
 
 export async function updateSettings(input) {
@@ -46,6 +54,11 @@ export async function updateSettings(input) {
 
   if (input.newPin) {
     data.accessPin = await bcrypt.hash(String(input.newPin), 10);
+    // Trocar o PIN derruba todas as sessoes abertas. Se o PIN antigo tiver
+    // vazado, quem estiver usando um cookie roubado perde o acesso na hora.
+    data.sessionVersion = { increment: 1 };
+    data.failedAttempts = 0;
+    data.lockedUntil = null;
   }
 
   return prisma.settings.update({ where: { id: SETTINGS_ID }, data });

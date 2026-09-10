@@ -23,6 +23,16 @@ export function AuthProvider({ children }) {
     };
   }, []);
 
+  // Qualquer chamada que volte "não autenticado" derruba a tela para o PIN.
+  useEffect(() => {
+    const onExpired = () => {
+      setSettings(null);
+      setStatus('out');
+    };
+    window.addEventListener('agenda:sessao-encerrada', onExpired);
+    return () => window.removeEventListener('agenda:sessao-encerrada', onExpired);
+  }, []);
+
   const login = useCallback(async (pin) => {
     const data = await api.login(pin);
     setSettings(data.settings);

@@ -30,6 +30,11 @@ async function request(path, { method = 'GET', body, signal } = {}) {
   }
 
   if (!response.ok) {
+    // Sessao derrubada (PIN trocado, saiu em outro aparelho, prazo vencido):
+    // volta para a tela do PIN em vez de mostrar um erro solto na pagina.
+    if (response.status === 401 && path !== '/auth/session' && path !== '/auth/login') {
+      window.dispatchEvent(new CustomEvent('agenda:sessao-encerrada'));
+    }
     const detail = data?.details?.[0]?.mensagem;
     throw new ApiError(response.status, detail || data?.error || 'Não foi possível completar a ação', data?.details);
   }

@@ -12,6 +12,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { createApp } from '../src/app.js';
 import { prisma, disconnectPrisma } from '../src/lib/prisma.js';
+import { hashPin } from '../src/services/auth.service.js';
 import { env } from '../src/config/env.js';
 
 const MARK = 'Teste Automatizado (pode apagar)';
@@ -94,20 +95,21 @@ test('fluxo completo da API', async (t) => {
     assert.match(setCookie, /SameSite=Lax/i);
   });
 
-  await t.test('sob HTTPS o cookie recebe a flag Secure', async () => {
-    // X-Forwarded-Proto e o header que o proxy do Railway/Render envia.
-    // Com "trust proxy" ligado, req.secure fica true e o cookie deve exigir HTTPS.
+  await t.test('em http local o cookie nao exige HTTPS (senao o login quebraria)', async () => {
+    const { setCookie } = await api.post('/api/auth/login', { pin: env.initialPin });
+    assert.ok(!/;\s*Secure/i.test(setCookie), 'cookie nao deveria exigir HTTPS em http local');
+  });
+
+  await t.test('fora de producao o cabecalho de proto encaminhado e ignorado', async () => {
+    // Sem proxy real na frente, confiar em X-Forwarded-* deixaria o cliente
+    // forjar tanto o protocolo quanto o proprio IP. A flag Secure sob HTTPS
+    // e verificada com o servidor em modo producao, em production.test.js.
     const { setCookie } = await api.post(
       '/api/auth/login',
       { pin: env.initialPin },
       { 'X-Forwarded-Proto': 'https' },
     );
-    assert.match(setCookie, /Secure/, 'cookie deveria ter a flag Secure atras de HTTPS');
-  });
-
-  await t.test('em http local o cookie nao exige HTTPS (senao o login quebraria)', async () => {
-    const { setCookie } = await api.post('/api/auth/login', { pin: env.initialPin });
-    assert.ok(!/;\s*Secure/i.test(setCookie), 'cookie nao deveria exigir HTTPS em http local');
+    assert.ok(!/;\s*Secure/i.test(setCookie));
   });
 
   await t.test('criar cliente invalido retorna 400 com detalhes', async () => {
@@ -209,6 +211,26 @@ test('fluxo completo da API', async (t) => {
     assert.equal(updated.status, 200);
   });
 
+  await t.test('configuracoes nunca expoem campos internos', async () => {
+    const { body } = await api.get('/api/settings');
+    for (const campo of ['accessPin', 'sessionVersion', 'failedAttempts', 'lockedUntil']) {
+      assert.ok(!(campo in body), `campo interno "${campo}" vazou na resposta`);
+    }
+  });
+
+  await t.test('PIN novo com menos de 6 digitos e recusado', async () => {
+    const before = await api.get('/api/settings');
+    const { status } = await api.put('/api/settings', {
+      professionalName: before.body.professionalName,
+      workStart: before.body.workStart,
+      workEnd: before.body.workEnd,
+      defaultDuration: before.body.defaultDuration,
+      workDays: before.body.workDays,
+      newPin: '1234',
+    });
+    assert.equal(status, 400);
+  });
+
   await t.test('excluir cliente tambem remove os agendamentos (cascade)', async () => {
     const del = await api.del(`/api/clients/${clientId}`);
     assert.equal(del.status, 204);
@@ -220,10 +242,89 @@ test('fluxo completo da API', async (t) => {
     assert.equal(orphan, null);
   });
 
-  await t.test('logout encerra a sessao', async () => {
+  await t.test('logout invalida o token, e nao so apaga o cookie', async () => {
+    // Guarda o cookie ANTES de sair e tenta reutilizar depois: um token
+    // apenas "esquecido" pelo navegador continuaria valendo no servidor.
+    const roubado = await api.post('/api/auth/login', { pin: env.initialPin });
+    const cookieRoubado = roubado.setCookie.split(';')[0];
+
     await api.post('/api/auth/logout', {});
-    const { status } = await api.get('/api/auth/session');
-    assert.equal(status, 401);
+
+    const res = await fetch(`${baseUrl}/api/clients`, { headers: { Cookie: cookieRoubado } });
+    assert.equal(res.status, 401, 'token deveria ter sido invalidado no servidor');
+  });
+
+  await t.test('trocar o PIN derruba as sessoes abertas em outros aparelhos', async () => {
+    // "Outro aparelho" ja logado.
+    const outro = await api.post('/api/auth/login', { pin: env.initialPin });
+    const cookieOutro = outro.setCookie.split(';')[0];
+
+    // Sessao atual troca o PIN.
+    await api.post('/api/auth/login', { pin: env.initialPin });
+    const atual = await api.get('/api/settings');
+    const troca = await api.put('/api/settings', {
+      professionalName: atual.body.professionalName,
+      workStart: atual.body.workStart,
+      workEnd: atual.body.workEnd,
+      defaultDuration: atual.body.defaultDuration,
+      workDays: atual.body.workDays,
+      newPin: '778899',
+    });
+    assert.equal(troca.status, 200);
+
+    const antigo = await fetch(`${baseUrl}/api/clients`, { headers: { Cookie: cookieOutro } });
+    assert.equal(antigo.status, 401, 'sessao antiga deveria cair ao trocar o PIN');
+
+    // Quem trocou continua conectada (recebeu cookie novo na resposta).
+    const continua = await api.get('/api/settings');
+    assert.equal(continua.status, 200, 'quem trocou o PIN deveria seguir conectada');
+
+    // Restaura o PIN original para nao afetar os outros testes.
+    const volta = await api.put('/api/settings', {
+      professionalName: atual.body.professionalName,
+      workStart: atual.body.workStart,
+      workEnd: atual.body.workEnd,
+      defaultDuration: atual.body.defaultDuration,
+      workDays: atual.body.workDays,
+      newPin: String(env.initialPin).padEnd(6, '0'),
+    });
+    assert.equal(volta.status, 200);
+    await prisma.settings.update({
+      where: { id: 1 },
+      data: { accessPin: await hashPin(env.initialPin), failedAttempts: 0, lockedUntil: null },
+    });
+  });
+
+  await t.test('bloqueio por tentativas nao e burlavel forjando o IP', async () => {
+    await prisma.settings.update({
+      where: { id: 1 },
+      data: { failedAttempts: 0, lockedUntil: null },
+    });
+
+    // Cada tentativa vem de um IP forjado diferente. Se a protecao dependesse
+    // do IP, nunca bloquearia. O bloqueio mora no banco, entao trava assim mesmo.
+    let bloqueou = false;
+    for (let i = 0; i < 6; i += 1) {
+      const { status } = await api.post(
+        '/api/auth/login',
+        { pin: '000000' },
+        { 'X-Forwarded-For': `203.0.113.${i + 1}` },
+      );
+      if (status === 429) {
+        bloqueou = true;
+        break;
+      }
+    }
+    assert.ok(bloqueou, 'deveria ter bloqueado mesmo variando o IP a cada tentativa');
+
+    // Ate o PIN correto e recusado enquanto o bloqueio estiver valendo.
+    const durante = await api.post('/api/auth/login', { pin: env.initialPin });
+    assert.equal(durante.status, 429);
+
+    await prisma.settings.update({
+      where: { id: 1 },
+      data: { failedAttempts: 0, lockedUntil: null },
+    });
   });
 
   server.close();

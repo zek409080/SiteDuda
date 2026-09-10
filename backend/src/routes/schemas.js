@@ -9,6 +9,11 @@ const optionalText = (max) =>
 
 export const idParam = z.object({ id: z.string().uuid('Identificador inválido') });
 
+/// PIN minimo aceito ao DEFINIR um novo. O login continua aceitando 4
+/// digitos para nao trancar quem ja tinha um PIN curto cadastrado antes
+/// desta regra — a forca bruta e contida pelo bloqueio por tentativas.
+export const MIN_NEW_PIN = 6;
+
 export const pinSchema = z.object({
   pin: z.string().min(4, 'O PIN precisa ter ao menos 4 dígitos').max(20),
 });
@@ -72,5 +77,14 @@ export const settingsSchema = z.object({
   workEnd: timeString,
   defaultDuration: z.coerce.number().int().min(10).max(480),
   workDays: z.array(z.coerce.number().int().min(0).max(6)).min(1, 'Escolha ao menos um dia'),
-  newPin: z.union([z.string().trim().min(4).max(20), z.literal('')]).optional(),
+  newPin: z
+    .union([
+      z
+        .string()
+        .trim()
+        .min(MIN_NEW_PIN, `O novo PIN precisa ter ao menos ${MIN_NEW_PIN} dígitos`)
+        .max(20),
+      z.literal(''),
+    ])
+    .optional(),
 });

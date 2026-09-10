@@ -307,22 +307,70 @@ um VPS próprio, etc.):
 
 ## Segurança
 
-- Acesso protegido por PIN (hash bcrypt, nunca gravado em texto puro).
-- Sessão via cookie `httpOnly` (inacessível a JavaScript no navegador),
-  assinado com JWT e com expiração configurável.
-- Todas as rotas de dados exigem sessão válida — a API nunca responde dados
-  de clientes ou agendamentos sem autenticação.
-- Limite de tentativas de login (10 por 10 minutos) para dificultar tentativa
-  de adivinhar o PIN.
-- Validação de todos os dados de entrada no backend (biblioteca `zod`), tanto
-  na API quanto reforçada no formulário do frontend.
-- Consultas ao banco feitas exclusivamente pelo Prisma, que usa consultas
-  parametrizadas — sem concatenar SQL, sem risco de SQL Injection.
-- Nenhum identificador de cliente ou agendamento trafega por URL de forma
-  sensível (os IDs são UUIDs aleatórios, não sequenciais).
-- Cabeçalhos de segurança HTTP via `helmet`.
-- Páginas marcadas com `noindex, nofollow` e `robots.txt` bloqueando
-  qualquer indexação por buscadores.
+**Acesso e sessão**
+
+- PIN guardado com hash bcrypt, nunca em texto puro, e nunca devolvido pela API.
+- Sessão em cookie `httpOnly` (JavaScript da página não consegue lê-lo),
+  `SameSite=Lax` e `Secure` automático sob HTTPS.
+- **Sessões são revogáveis de verdade.** Cada token carrega o número da
+  geração da sessão, conferido a cada requisição. Sair do sistema ou trocar
+  o PIN invalida na hora todos os cookies já emitidos, inclusive um que
+  tivesse sido roubado. Quem troca o PIN continua conectada; os demais
+  aparelhos caem.
+- **Bloqueio progressivo por tentativas erradas**, gravado no banco: 1 minuto
+  após 5 erros, 15 minutos após 10, 1 hora após 15. Como fica no banco e vale
+  para o sistema inteiro, não é contornável trocando de IP nem reiniciando o
+  servidor. Novos PINs exigem no mínimo 6 dígitos.
+- Limite de requisições por IP no login e na API como um todo, como camada
+  adicional.
+
+**Dados e permissões**
+
+- Todas as rotas de dados exigem sessão válida — a API nunca responde dados de
+  clientes ou agendamentos sem autenticação.
+- Validação de toda entrada no backend com `zod`, cobrindo corpo, parâmetros e
+  query string. A validação do formulário é só conveniência; quem decide é o
+  servidor.
+- Proteção contra mass assignment: campos desconhecidos são descartados e cada
+  serviço monta os dados por lista explícita. Não há como injetar `id`,
+  `createdAt` nem o hash do PIN por requisição.
+- Respostas montadas por lista explícita de campos, então nenhum dado interno
+  vaza por esquecimento.
+- Consultas exclusivamente pelo Prisma, parametrizadas. Não há SQL escrito à
+  mão em lugar nenhum, portanto não há superfície de SQL injection.
+- Identificadores são UUIDs aleatórios, não sequenciais, e não é possível
+  descobrir registros por tentativa.
+- A aplicação pode rodar com um usuário de banco sem poderes administrativos.
+  Veja [Usuário de banco restrito](#usuário-de-banco-restrito).
+
+**Rede e navegador**
+
+- `Content-Security-Policy` restritiva: nada de script inline, nada de `eval`,
+  nada de origem externa, e a página não pode ser embutida em outro site.
+- HSTS, `X-Content-Type-Options`, `Referrer-Policy`, `Permissions-Policy` e
+  demais cabeçalhos via `helmet`.
+- Em produção o CORS não autoriza nenhuma origem externa, já que o backend
+  entrega o próprio frontend.
+- Páginas marcadas com `noindex, nofollow` e `robots.txt` bloqueando buscadores.
+
+Toda essa lista é coberta por testes automatizados. Rode `npm test` dentro de
+`backend` para conferir.
+
+## Usuário de banco restrito
+
+Por padrão a aplicação conecta com o usuário dono do banco, que costuma ser
+superusuário. Se essa credencial vazar, o estrago passa longe de só ler a
+agenda. Para reduzir isso:
+
+1. Abra `backend/prisma/least-privilege.sql`, troque a senha de exemplo por
+   uma senha forte e rode o script conectado como administrador do banco.
+2. No ambiente da aplicação, use duas variáveis:
+   - `DATABASE_URL` apontando para o usuário restrito, usado o tempo todo;
+   - `MIGRATION_DATABASE_URL` apontando para o administrador, usado apenas ao
+     aplicar migrations.
+
+O usuário restrito só consegue ler e escrever nas três tabelas da agenda. Ele
+não cria nem apaga tabelas, não cria usuários e não é superusuário.
 
 ## Privacidade e LGPD
 
