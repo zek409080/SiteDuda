@@ -19,21 +19,105 @@ enum AppointmentStatus {
   FALTOU
 }
 
-/// Pessoa atendida pela profissional.
+/// Pessoa atendida pela profissional. Na interface ela aparece como
+/// "paciente"; no banco a tabela continua sendo `clients`, para nao quebrar
+/// as migrations e os dados que ja existem.
 model Client {
   id        String    @id @default(uuid())
   name      String    @db.VarChar(120)
   phone     String    @db.VarChar(30)
   email     String?   @db.VarChar(160)
   birthDate DateTime? @map("birth_date") @db.Date
+  address   String?   @db.VarChar(240)
+  /// false = "nenhuma alergia conhecida"; true = a lista de alergias vale.
+  /// Guardado a parte porque "lista vazia" e "sem alergia conhecida" sao
+  /// informacoes clinicas diferentes.
+  hasAllergies Boolean @default(false) @map("has_allergies")
   notes     String?   @db.Text
   createdAt DateTime  @default(now()) @map("created_at")
   updatedAt DateTime  @updatedAt @map("updated_at")
 
   appointments Appointment[]
+  responsibles ClientResponsible[]
+  allergies    ClientAllergy[]
+  medications  ClientMedication[]
+  documents    ClientDocument[]
 
   @@index([name])
   @@map("clients")
+}
+
+/// Responsavel por um paciente (mae, pai, responsavel legal...).
+/// Opcional: pacientes adultos costumam nao ter nenhum.
+model ClientResponsible {
+  id        String   @id @default(uuid())
+  clientId  String   @map("client_id")
+  name      String   @db.VarChar(120)
+  relation  String   @db.VarChar(60)
+  phone     String?  @db.VarChar(30)
+  email     String?  @db.VarChar(160)
+  notes     String?  @db.Text
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  client Client @relation(fields: [clientId], references: [id], onDelete: Cascade)
+
+  @@index([clientId])
+  @@map("client_responsibles")
+}
+
+/// Alergia relatada pelo paciente ou pelo responsavel.
+/// Campo de registro, sem nenhuma logica clinica associada.
+model ClientAllergy {
+  id        String   @id @default(uuid())
+  clientId  String   @map("client_id")
+  name      String   @db.VarChar(120)
+  notes     String?  @db.Text
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  client Client @relation(fields: [clientId], references: [id], onDelete: Cascade)
+
+  @@index([clientId])
+  @@map("client_allergies")
+}
+
+/// Medicamento em uso, conforme informado. Tambem e so registro.
+model ClientMedication {
+  id        String   @id @default(uuid())
+  clientId  String   @map("client_id")
+  name      String   @db.VarChar(120)
+  dosage    String?  @db.VarChar(60)
+  frequency String?  @db.VarChar(80)
+  notes     String?  @db.Text
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  client Client @relation(fields: [clientId], references: [id], onDelete: Cascade)
+
+  @@index([clientId])
+  @@map("client_medications")
+}
+
+/// Metadados de um arquivo anexado ao paciente.
+/// O arquivo em si fica no disco (pasta de uploads); aqui guardamos so a
+/// referencia. `storageName` e gerado pelo servidor — o nome enviado pelo
+/// navegador nunca vira caminho.
+model ClientDocument {
+  id           String   @id @default(uuid())
+  clientId     String   @map("client_id")
+  originalName String   @map("original_name") @db.VarChar(255)
+  storageName  String   @unique @map("storage_name") @db.VarChar(120)
+  mimeType     String   @map("mime_type") @db.VarChar(120)
+  fileSize     Int      @map("file_size")
+  storagePath  String   @map("storage_path") @db.VarChar(255)
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  client Client @relation(fields: [clientId], references: [id], onDelete: Cascade)
+
+  @@index([clientId])
+  @@map("client_documents")
 }
 
 /// Um atendimento na agenda.
@@ -48,6 +132,12 @@ model Appointment {
   status    AppointmentStatus @default(AGENDADO)
   type      String            @default("Consulta") @db.VarChar(60)
   notes     String?           @db.Text
+
+  /// Todas as ocorrencias criadas de uma vez compartilham este identificador.
+  /// Nulo em atendimento avulso. E o que permite depois editar ou cancelar
+  /// "este e os proximos" sem sair adivinhando quais linhas pertencem juntas.
+  recurrenceGroupId String?   @map("recurrence_group_id")
+
   createdAt DateTime          @default(now()) @map("created_at")
   updatedAt DateTime          @updatedAt @map("updated_at")
 
@@ -55,7 +145,45 @@ model Appointment {
 
   @@index([date])
   @@index([clientId])
+  @@index([recurrenceGroupId])
   @@map("appointments")
+}
+
+/// Bloco de anotacoes da profissional. De proposito nao tem vinculo com
+/// paciente: e o lugar para lembretes soltos do dia a dia ("ligar para X",
+/// "comprar material"). Anotacao de sessao continua dentro do atendimento.
+model Note {
+  id        String   @id @default(uuid())
+  title     String   @db.VarChar(160)
+  content   String   @db.Text
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  documents NoteDocument[]
+
+  @@index([updatedAt])
+  @@map("notes")
+}
+
+/// Arquivo anexado a uma nota. Mesma ideia do documento de paciente: o
+/// arquivo fica no disco e aqui ficam so os metadados. Tabela separada
+/// porque o dono e outro — assim a chave estrangeira continua obrigatoria
+/// e apagar a nota leva os anexos junto.
+model NoteDocument {
+  id           String   @id @default(uuid())
+  noteId       String   @map("note_id")
+  originalName String   @map("original_name") @db.VarChar(255)
+  storageName  String   @unique @map("storage_name") @db.VarChar(120)
+  mimeType     String   @map("mime_type") @db.VarChar(120)
+  fileSize     Int      @map("file_size")
+  storagePath  String   @map("storage_path") @db.VarChar(255)
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  note Note @relation(fields: [noteId], references: [id], onDelete: Cascade)
+
+  @@index([noteId])
+  @@map("note_documents")
 }
 
 /// Linha unica de configuracao do sistema (id sempre = 1).

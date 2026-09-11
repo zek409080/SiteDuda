@@ -1,0 +1,129 @@
+.patient-detail { display: flex; flex-direction: column; gap: 20px; max-width: 940px; margin: 0 auto; }
+.patient-card > .spread { flex-wrap: wrap; }
+.patient-card h1 { overflow-wrap: anywhere; min-width: 0; }
+
+.back-link { color: var(--text-soft); font-size: 0.88rem; }
+.back-link:hover { color: var(--accent); }
+
+.patient-card { padding: 22px 24px 0; display: flex; flex-direction: column; gap: 16px; }
+.patient-actions { display: flex; gap: 8px; flex-shrink: 0; }
+
+/* Navegacao interna do paciente. No celular ela rola na horizontal em vez
+   de quebrar em duas linhas e empurrar o conteudo para baixo. */
+.patient-tabs-wrap { position: relative; }
+
+/* Aviso de que a faixa continua para o lado. Nao captura clique, entao nao
+   atrapalha a aba que estiver embaixo dele. */
+.patient-tabs-wrap::after {
+  content: '';
+  position: absolute;
+  top: 0; right: -24px; bottom: 1px;
+  width: 28px;
+  pointer-events: none;
+  background: linear-gradient(to right, rgba(255, 255, 255, 0), var(--surface));
+}
+
+.patient-tabs {
+  display: flex;
+  gap: 2px;
+  overflow-x: auto;
+  scrollbar-width: none;
+  margin: 0 -24px;
+  padding: 0 24px;
+  border-bottom: 1px solid var(--border);
+}
+.patient-tabs::-webkit-scrollbar { display: none; }
+
+/* Em telas largas as cinco abas cabem: o degrade sai de cena. */
+@media (min-width: 620px) {
+  .patient-tabs-wrap::after { display: none; }
+}
+
+.patient-tab {
+  flex: none;
+  padding: 10px 14px;
+  border: none;
+  border-bottom: 2px solid transparent;
+  background: none;
+  color: var(--text-soft);
+  font-size: 0.88rem;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: color 0.15s var(--ease), border-color 0.15s var(--ease);
+}
+.patient-tab:hover { color: var(--text); }
+.patient-tab.active {
+  color: var(--accent);
+  border-bottom-color: var(--accent);
+  font-weight: 500;
+}
+
+.tab-panel { padding: 20px 24px; display: flex; flex-direction: column; gap: 16px; }
+.tab-panel-plain { display: flex; flex-direction: column; gap: 12px; }
+
+.panel-title { font-size: 0.85rem; font-weight: 600; letter-spacing: 0.02em; color: var(--text-soft); }
+.panel-title-spaced { margin-top: 10px; }
+
+.patient-info {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
+  margin: 0;
+}
+.patient-info dt { font-size: 0.74rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.03em; margin-bottom: 3px; }
+.patient-info dd { margin: 0; font-size: 0.92rem; word-break: break-word; }
+.info-wide { grid-column: 1 / -1; }
+
+.patient-notes {
+  padding-top: 14px;
+  border-top: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.patient-notes p { white-space: pre-wrap; line-height: 1.6; }
+
+/* Cartoes de responsavel, alergia e medicamento. */
+.info-cards { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 10px; }
+.info-card {
+  padding: 14px 15px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--surface-soft);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.info-card-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; }
+.info-card-title { font-weight: 500; }
+.info-card-note { white-space: pre-wrap; color: var(--text-soft); }
+
+.history-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
+.history-row {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 14px 16px;
+  text-align: left;
+  border: 1px solid var(--border);
+  cursor: pointer;
+  transition: border-color 0.15s var(--ease);
+}
+.history-row:hover { border-color: var(--accent-border); }
+.history-date { font-weight: 500; }
+.history-note {
+  width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+@media (max-width: 640px) {
+  .patient-info { grid-template-columns: 1fr; }
+  .patient-card { padding: 18px 16px 0; }
+  .patient-tabs { margin: 0 -16px; padding: 0 16px; }
+  .patient-tabs-wrap::after { right: -16px; }
+  .tab-panel { padding: 16px; }
+  .patient-actions { flex-wrap: wrap; }
+}

@@ -4,3 +4,7 @@ node_modules/
 dist/
 .pgdata/
 .pgdata.log
+
+# Documentos enviados pela profissional. Sao dados de paciente:
+# nunca entram no versionamento (o backup deles e feito a parte).
+uploads/

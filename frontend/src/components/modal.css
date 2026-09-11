@@ -13,7 +13,7 @@
 
 .modal {
   width: 100%;
-  max-width: 440px;
+  max-width: 500px;
   max-height: calc(100vh - 40px);
   display: flex;
   flex-direction: column;
@@ -23,15 +23,19 @@
   animation: rise 0.2s var(--ease);
 }
 
+.modal-wide { max-width: 660px; }
+
 .modal-head {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 12px;
-  padding: 20px 22px 14px;
+  padding: 22px 24px;
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
 }
 .modal-close {
-  width: 30px; height: 30px;
+  width: 34px; height: 34px; flex-shrink: 0;
   display: grid; place-items: center;
   border: none; border-radius: 8px;
   background: none;
@@ -43,13 +47,16 @@
 }
 .modal-close:hover { background: var(--surface-soft); color: var(--text); }
 
-.modal-body { padding: 0 22px 4px; overflow-y: auto; }
+.modal-body { padding: 22px 24px 8px; overflow-y: auto; min-height: 0; }
 
 .modal-foot {
   display: flex;
   justify-content: flex-end;
   gap: 10px;
-  padding: 16px 22px 20px;
+  padding: 16px 24px 20px;
+  flex-wrap: wrap;
+  flex-shrink: 0;
+  border-top: 1px solid var(--border);
 }
 
 @media (max-width: 560px) {
@@ -61,6 +68,8 @@
   }
   .modal-foot { padding-bottom: calc(20px + env(safe-area-inset-bottom)); }
   .modal-foot .btn { flex: 1; }
+  .modal-head, .modal-body { padding-left: 20px; padding-right: 20px; }
+  .modal { max-height: 92dvh; }
 }
 
 .quick-status {

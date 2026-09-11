@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../lib/auth.jsx';
 import { api } from '../services/api.js';
 import AppointmentModal from '../components/AppointmentModal.jsx';
@@ -17,7 +18,8 @@ import {
   weekLabel,
   WEEKDAYS_SHORT,
 } from '../lib/date.js';
-import { statusLabel } from '../lib/status.js';
+import { STATUS_LIST, statusLabel } from '../lib/status.js';
+import { deletedMessage, savedMessage } from '../lib/appointmentFeedback.js';
 import './agenda.css';
 
 const VIEWS = [
@@ -26,18 +28,24 @@ const VIEWS = [
   { key: 'month', label: 'Mês' },
 ];
 
-const HOUR_HEIGHT = 60; // pixels por hora cheia
+const HOUR_HEIGHT = 46; // pixels por hora cheia
 
 export default function Agenda() {
   const { settings } = useAuth();
+  const location = useLocation();
+  const navigate = useNavigate();
+  // O item "Novo agendamento" do menu leva a esta mesma tela por um endereco
+  // proprio; ao chegar por ele, o formulario ja abre.
+  const openingNew = location.pathname === '/novo-agendamento';
   const [view, setView] = useState('week');
   const [cursor, setCursor] = useState(todayKey());
   const [clients, setClients] = useState([]);
   const [appointments, setAppointments] = useState([]);
   const [summary, setSummary] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [modal, setModal] = useState(null); // { appointment? , date?, time? } | null
+  const [modal, setModal] = useState(() => (openingNew ? { initial: { date: todayKey(), startTime: '' } } : null));
   const [errorMsg, setErrorMsg] = useState('');
+  const [feedback, setFeedback] = useState('');
 
   const workStart = settings?.workStart ?? '08:00';
   const workEnd = settings?.workEnd ?? '18:00';
@@ -88,6 +96,13 @@ export default function Agenda() {
     loadSummary();
   }, [loadSummary, appointments]);
 
+  // O aviso some sozinho: e confirmacao, nao algo para a profissional fechar.
+  useEffect(() => {
+    if (!feedback) return undefined;
+    const timer = setTimeout(() => setFeedback(''), 9000);
+    return () => clearTimeout(timer);
+  }, [feedback]);
+
   function goToday() {
     setCursor(todayKey());
   }
@@ -104,21 +119,34 @@ export default function Agenda() {
     else setCursor((c) => addMonths(c, 1));
   }
 
+  useEffect(() => {
+    if (openingNew) setModal({ initial: { date: todayKey(), startTime: '' } });
+  }, [openingNew]);
+
   function openCreate(date, time) {
     setModal({ initial: { date, startTime: time } });
+  }
+
+  /// Fechar o formulario aberto pelo menu tira o endereco especial da barra,
+  /// senao voltar para a agenda reabriria o mesmo formulario.
+  function closeModal() {
+    setModal(null);
+    if (openingNew) navigate('/', { replace: true });
   }
 
   function openEdit(appointment) {
     setModal({ appointment });
   }
 
-  function handleSaved() {
-    setModal(null);
+  function handleSaved(saved) {
+    setFeedback(savedMessage(saved, Boolean(modal?.appointment)));
+    closeModal();
     loadAppointments();
   }
 
-  function handleDeleted() {
-    setModal(null);
+  function handleDeleted(id, result) {
+    setFeedback(deletedMessage(result));
+    closeModal();
     loadAppointments();
   }
 
@@ -171,9 +199,15 @@ export default function Agenda() {
         </div>
 
         <SummaryBar summary={summary} />
+        <div className="status-legend" aria-label="Legenda dos status das consultas">
+          {STATUS_LIST.map((status) => (
+            <span key={status} className={`badge st-${status}`}>{statusLabel(status)}</span>
+          ))}
+        </div>
       </header>
 
       {errorMsg && <p className="error-text">{errorMsg}</p>}
+      {feedback && <p className="success-text">{feedback}</p>}
 
       {view === 'month' ? (
         <MonthView
@@ -203,7 +237,7 @@ export default function Agenda() {
           initial={modal.initial}
           clients={clients}
           defaultDuration={defaultDuration}
-          onClose={() => setModal(null)}
+          onClose={closeModal}
           onSaved={handleSaved}
           onDeleted={handleDeleted}
         />
@@ -293,15 +327,20 @@ function GridView({ days, workStart, workEnd, appointments, loading, onSlotClick
               {(byDay.get(day) ?? []).map((appt) => {
                 const top = ((timeToMinutes(appt.startTime) - gridStart) / 60) * HOUR_HEIGHT;
                 const height = Math.max(
-                  22,
+                  24,
                   ((timeToMinutes(appt.endTime) - timeToMinutes(appt.startTime)) / 60) * HOUR_HEIGHT - 2,
                 );
+                // Atendimento curto nao tem altura para duas linhas: nesse
+                // caso horario e nome ficam lado a lado, em vez de o nome
+                // ser cortado pela borda do bloco.
+                const compact = height < 34;
                 return (
                   <button
                     key={appt.id}
                     type="button"
-                    className={`appt-block st-${appt.status}`}
+                    className={`appt-block st-${appt.status} ${compact ? 'appt-compact' : ''}`}
                     style={{ top, height }}
+                    title={`${appt.startTime} — ${appt.client?.name ?? ''} — ${statusLabel(appt.status)}`}
                     onClick={() => onAppointmentClick(appt)}
                   >
                     <span className="appt-time">{appt.startTime}</span>

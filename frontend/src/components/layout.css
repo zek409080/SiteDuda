@@ -5,17 +5,18 @@
   top: 0;
   align-self: flex-start;
   height: 100vh;
-  width: 232px;
-  flex: 0 0 232px;
-  padding: 26px 16px 20px;
+  width: 244px;
+  flex: 0 0 244px;
+  padding: 32px 18px 20px;
+  overflow-y: auto;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-  background: var(--surface);
+  background: var(--sidebar-bg);
   border-right: 1px solid var(--border);
 }
 
-.brand { display: flex; align-items: center; gap: 10px; padding: 0 10px 22px; }
+.brand { display: flex; align-items: center; gap: 10px; padding: 0 8px 32px; }
 .brand-mark {
   width: 28px; height: 28px; flex: none;
   border-radius: 9px;
@@ -30,12 +31,18 @@
 .brand-name {
   font-weight: 600;
   font-size: 0.95rem;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  min-width: 0;
+  overflow-wrap: anywhere;
+  line-height: 1.35;
 }
 
-.nav { display: flex; flex-direction: column; gap: 2px; }
+.nav { display: flex; flex-direction: column; gap: 6px; }
+.nav-icon { width: 20px; height: 20px; flex: none; vertical-align: middle; }
+.nav-icon--agenda { color: var(--accent); }
+.nav-icon--patients { color: #3c74ad; }
+.nav-icon--notes { color: #8b57b2; }
+.nav-icon--settings { color: #a87c27; }
+.nav-icon--exit { color: #ba5b65; }
 
 .nav-link {
   display: flex;
@@ -53,12 +60,100 @@
 }
 .nav-link:hover { background: var(--surface-soft); color: var(--text); }
 .nav-link.active { background: var(--accent-soft); color: var(--accent-dark); font-weight: 500; }
-.nav-exit { width: 100%; }
+.nav-link.active span[aria-hidden] { filter: none; }
+.nav-exit { width: 100%; margin-top: 24px; flex-shrink: 0; }
+
+/* ------------------------- notas na lateral ------------------------- */
+
+.side-notes {
+  margin-top: 22px;
+  padding-top: 16px;
+  border-top: 1px solid var(--border);
+}
+
+.side-notes-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 0 12px 8px;
+}
+.side-notes-title {
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+.side-notes-add {
+  width: 22px;
+  height: 22px;
+  display: grid;
+  place-items: center;
+  border: none;
+  border-radius: 6px;
+  background: none;
+  color: var(--accent);
+  font-size: 1.05rem;
+  line-height: 1;
+  cursor: pointer;
+  transition: background 0.15s var(--ease);
+}
+.side-notes-add:hover { background: var(--accent-soft); }
+
+.side-notes-empty { padding: 0 12px; font-size: 0.78rem; color: var(--muted); }
+
+.side-notes-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 6px; }
+
+/* Atalhos discretos para os lembretes, com o mesmo padrao dos cartoes. */
+.side-note {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 9px 11px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--surface-soft);
+  color: var(--text-soft);
+  font-size: 0.8rem;
+  text-align: left;
+  cursor: pointer;
+  transition: border-color 0.15s var(--ease), color 0.15s var(--ease),
+    box-shadow 0.15s var(--ease), transform 0.1s var(--ease);
+}
+.side-note:hover {
+  border-left-color: var(--accent);
+  color: var(--text);
+  box-shadow: var(--shadow);
+}
+
+/* Titulo longo nao alarga a lateral. */
+.side-note-title {
+  flex: 1;
+  min-width: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.side-note-clip { flex: none; font-size: 0.72rem; color: var(--accent); font-weight: 500; }
+
+.side-notes-all {
+  display: block;
+  margin-top: 4px;
+  padding: 4px 12px;
+  border: none;
+  background: none;
+  color: var(--accent);
+  font-size: 0.76rem;
+  cursor: pointer;
+}
+.side-notes-all:hover { text-decoration: underline; }
 
 .content {
   flex: 1;
   min-width: 0;
-  padding: 30px 34px 40px;
+  padding: 36px 40px 48px;
   animation: fade-in 0.2s var(--ease);
 }
 
@@ -74,8 +169,9 @@
     left: 0; right: 0; bottom: 0;
     z-index: 20;
     display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    padding: 6px 4px calc(6px + env(safe-area-inset-bottom));
+    /* quatro secoes + Sair */
+    grid-template-columns: repeat(5, 1fr);
+    padding: 6px 2px calc(6px + env(safe-area-inset-bottom));
     background: var(--surface);
     border-top: 1px solid var(--border);
   }
@@ -91,6 +187,6 @@
     font-size: 1.05rem;
     cursor: pointer;
   }
-  .tab.active { color: var(--accent-dark); }
-  .tab-label { font-size: 0.66rem; letter-spacing: 0.01em; }
+  .tab.active { color: var(--accent); font-weight: 500; }
+  .tab-label { font-size: 0.63rem; letter-spacing: 0; }
 }

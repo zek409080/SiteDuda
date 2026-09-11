@@ -3,3 +3,6 @@ node_modules/
 .env.local
 dist/
 .pgdata/
+
+# Documentos de paciente: fora do versionamento.
+uploads/

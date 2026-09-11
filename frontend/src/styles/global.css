@@ -1,29 +1,44 @@
 /* ---------------------------------------------------------------
    Agenda pessoal — visual calmo, muito espaco em branco,
    um unico tom de destaque e cores de status discretas.
+
+   A cor da marca e o verde #3d6a2c. Ele aparece SO nos detalhes:
+   botao principal, item selecionado, foco, link e indicadores.
+   O fundo da pagina e lavanda suave e os cartoes sao brancos — o verde
+   destaca, nao domina.
+   Os tons derivados abaixo existem para hover, fundo suave e badge,
+   e nenhuma tela deve inventar cor fora desta lista.
    --------------------------------------------------------------- */
 
 :root {
-  --bg: #f6f6f3;
+  /* O sistema e claro. Sem isto, um computador configurado em modo escuro
+     pinta as partes nativas do navegador (lista do select, seletor de hora
+     e de data, barra de rolagem) com fundo preto sobre a tela branca. */
+  color-scheme: light;
+
+  /* Lavanda suave na lateral e ainda mais claro no fundo principal. */
+  --bg: #faf5ff;
+  --sidebar-bg: #f5ebff;
   --surface: #ffffff;
-  --surface-soft: #fbfbf9;
-  --border: #e6e4de;
-  --border-strong: #d5d2ca;
-  --text: #2b2b28;
-  --text-soft: #5f5f58;
-  --muted: #8d8d85;
-  --accent: #4f7d74;
-  --accent-dark: #3c6159;
-  --accent-soft: #edf3f1;
-  --danger: #a8544a;
-  --danger-soft: #f8efee;
+  --surface-soft: #faf7fd;
+  --border: #e5e8e2;
+  --border-strong: #cdd3c9;
+  --text: #262e29;
+  --text-soft: #535e56;
+  --muted: #687369;
+  --accent: #3d6a2c;
+  --accent-dark: #2f5321;       /* hover do botao principal */
+  --accent-soft: #eef4ea;       /* fundo muito suave / selecionado */
+  --accent-border: #d3e3c9;     /* borda de badge e destaque */
+  --danger: #a63838;
+  --danger-soft: #fff0ee;
 
   --radius: 12px;
   --radius-sm: 8px;
-  --shadow: 0 1px 2px rgba(28, 28, 25, 0.04), 0 6px 20px rgba(28, 28, 25, 0.05);
-  --shadow-lg: 0 10px 40px rgba(28, 28, 25, 0.12);
+  --shadow: 0 2px 5px rgba(28, 38, 25, 0.025);
+  --shadow-lg: 0 20px 64px rgba(28, 38, 25, 0.14);
 
-  --font: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  --font: 'Segoe UI Variable', 'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, 'Helvetica Neue', Arial, sans-serif;
   --ease: cubic-bezier(0.4, 0, 0.2, 1);
 }
 
@@ -42,7 +57,7 @@ body {
 }
 
 h1, h2, h3, h4 { margin: 0; font-weight: 600; letter-spacing: -0.01em; }
-h1 { font-size: 1.45rem; }
+h1 { font-size: clamp(1.45rem, 2vw, 1.8rem); line-height: 1.25; letter-spacing: -0.035em; }
 h2 { font-size: 1.15rem; }
 h3 { font-size: 1rem; }
 p { margin: 0; }
@@ -81,11 +96,13 @@ a { color: inherit; text-decoration: none; }
 .btn-danger { color: var(--danger); border-color: transparent; background: transparent; }
 .btn-danger:hover:not(:disabled) { background: var(--danger-soft); }
 .btn-block { width: 100%; }
+.btn-sm { padding: 6px 11px; font-size: 0.8rem; }
 
 /* ---------------------------- formularios -------------------------- */
 
 .field { display: flex; flex-direction: column; gap: 6px; margin-bottom: 16px; }
-.field label { font-size: 0.82rem; font-weight: 500; color: var(--text-soft); }
+.field label { font-size: 0.82rem; font-weight: 600; color: var(--text-soft); }
+.hint { font-size: 0.82rem; color: var(--muted); line-height: 1.6; }
 .field .hint { font-size: 0.78rem; color: var(--muted); }
 
 .input, .select, .textarea {
@@ -102,7 +119,32 @@ a { color: inherit; text-decoration: none; }
   box-shadow: 0 0 0 3px var(--accent-soft);
 }
 .textarea { resize: vertical; min-height: 90px; line-height: 1.55; }
-.row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+.row { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 16px; }
+.field { min-width: 0; }
+.input, .select, .textarea { min-width: 0; }
+.input::placeholder, .textarea::placeholder { color: var(--muted); opacity: 1; }
+.input:hover:not(:focus), .select:hover:not(:focus), .textarea:hover:not(:focus) { border-color: var(--muted); }
+:where(button, a, input, select, textarea, [tabindex]):focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+::selection { background: var(--accent-border); color: var(--text); }
+.page-head { display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; min-height: 44px; }
+
+/* Usados por mais de uma tela (cadastro de paciente, agendamento, notas),
+   entao moram aqui e nao no CSS de uma pagina so. */
+.group-label { font-size: 0.82rem; font-weight: 500; color: var(--text-soft); }
+
+.choice-group { display: flex; flex-wrap: wrap; gap: 16px; margin-top: 2px; }
+.choice {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 0.9rem;
+  color: var(--text);
+  cursor: pointer;
+}
+.choice input { accent-color: var(--accent); width: 16px; height: 16px; margin: 0; cursor: pointer; }
+
+/* Nome do item prestes a ser excluido, dentro do modal de confirmacao. */
+.delete-target { margin: 6px 0 10px; font-weight: 500; word-break: break-word; }
 
 .error-text {
   margin-bottom: 14px;
@@ -130,10 +172,20 @@ a { color: inherit; text-decoration: none; }
   box-shadow: var(--shadow);
 }
 .muted { color: var(--muted); }
+/* Rotulo lido por leitor de tela quando o titulo da secao ja explica o campo. */
+.sr-only {
+  position: absolute;
+  width: 1px; height: 1px;
+  padding: 0; margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
 .small { font-size: 0.82rem; }
 .stack { display: flex; flex-direction: column; gap: 10px; }
 .spread { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
-.empty { padding: 48px 20px; text-align: center; color: var(--muted); }
+.empty { padding: 48px 24px; text-align: center; color: var(--muted); background: var(--surface); border: 1px dashed var(--border-strong); border-radius: var(--radius); line-height: 1.7; }
 
 /* ----------------------------- status ------------------------------ */
 
@@ -147,11 +199,22 @@ a { color: inherit; text-decoration: none; }
   letter-spacing: 0.01em;
   border: 1px solid transparent;
 }
-.st-AGENDADO   { background: #f0f0ec; color: #5f5f58; border-color: #e2e0da; }
-.st-CONFIRMADO { background: #edf3f1; color: #3c6159; border-color: #d7e5e1; }
-.st-REALIZADO  { background: #eef1ee; color: #55665a; border-color: #dde4dd; }
-.st-CANCELADO  { background: #f5f2f1; color: #9b8f8c; border-color: #e8e2e0; }
-.st-FALTOU     { background: #f8f1ea; color: #96745a; border-color: #ece0d2; }
+/* Uma paleta de status compartilhada por badges e todas as vistas da agenda. */
+.st-AGENDADO   { --status-bg: #eef7e9; --status-text: #41672e; --status-border: #d4e7c9; --status-mark: #83aa65; }
+.st-CONFIRMADO { --status-bg: #edf4ff; --status-text: #285e9b; --status-border: #cedeF5; --status-mark: #5b8fc8; }
+.st-REALIZADO  { --status-bg: #e5f1eb; --status-text: #20543b; --status-border: #bed7ca; --status-mark: #2b7050; }
+.st-CANCELADO  { --status-bg: #fff1ee; --status-text: #a33f36; --status-border: #f2d3cd; --status-mark: #df8b80; }
+.st-FALTOU     { --status-bg: #f7e7e9; --status-text: #8e2938; --status-border: #e7bcc4; --status-mark: #a83c4d; }
+.badge { flex-shrink: 0; gap: 6px; white-space: nowrap; font-weight: 600; background: var(--status-bg, var(--surface-soft)); color: var(--status-text, var(--text-soft)); border-color: var(--status-border, var(--border)); }
+.badge[class*="st-"]::before { content: ''; width: 6px; height: 6px; border-radius: 50%; background: var(--status-mark); }
+.badge-neutral { background: var(--surface-soft); color: var(--text-soft); border-color: var(--border); }
+
+@media (max-width: 560px) {
+  .row { grid-template-columns: 1fr; gap: 0; }
+  .input, .select, .textarea { font-size: 16px; }
+  .spread { flex-wrap: wrap; }
+  .btn { min-height: 40px; }
+}
 
 @keyframes fade-in { from { opacity: 0; } to { opacity: 1; } }
 @keyframes rise { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }

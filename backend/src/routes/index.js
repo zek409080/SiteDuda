@@ -4,6 +4,7 @@ import authRoutes from './auth.routes.js';
 import clientsRoutes from './clients.routes.js';
 import appointmentsRoutes from './appointments.routes.js';
 import settingsRoutes from './settings.routes.js';
+import notesRoutes from './notes.routes.js';
 
 const router = Router();
 
@@ -15,5 +16,6 @@ router.use('/auth', authRoutes);
 router.use('/clients', requireAuth, clientsRoutes);
 router.use('/appointments', requireAuth, appointmentsRoutes);
 router.use('/settings', requireAuth, settingsRoutes);
+router.use('/notes', requireAuth, notesRoutes);
 
 export default router;

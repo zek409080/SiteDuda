@@ -1,12 +1,12 @@
 import { useCallback, useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { api } from '../services/api.js';
-import ClientModal from '../components/ClientModal.jsx';
+import PatientModal from '../components/PatientModal.jsx';
 import { formatFull } from '../lib/date.js';
-import './clients.css';
+import './patients.css';
 
-export default function Clients() {
-  const [clients, setClients] = useState([]);
+export default function Patients() {
+  const [patients, setPatients] = useState([]);
   const [search, setSearch] = useState('');
   const [loading, setLoading] = useState(true);
   const [errorMsg, setErrorMsg] = useState('');
@@ -17,7 +17,7 @@ export default function Clients() {
     setErrorMsg('');
     api
       .listClients(term ? { search: term } : {})
-      .then(setClients)
+      .then(setPatients)
       .catch((err) => setErrorMsg(err.message))
       .finally(() => setLoading(false));
   }, []);
@@ -34,11 +34,11 @@ export default function Clients() {
   }
 
   return (
-    <div className="clients-page">
+    <div className="patients-page">
       <div className="page-head">
-        <h1>Clientes</h1>
+        <h1>Pacientes</h1>
         <button className="btn btn-primary" type="button" onClick={() => setModalOpen(true)}>
-          + Novo cliente
+          + Novo paciente
         </button>
       </div>
 
@@ -48,29 +48,30 @@ export default function Clients() {
         placeholder="Pesquisar por nome ou telefone"
         value={search}
         onChange={(e) => setSearch(e.target.value)}
-        aria-label="Pesquisar clientes"
+        aria-label="Pesquisar pacientes"
       />
 
       {errorMsg && <p className="error-text">{errorMsg}</p>}
 
-      {!loading && clients.length === 0 && (
+      {!loading && patients.length === 0 && (
         <p className="empty">
-          {search ? 'Nenhum cliente encontrado.' : 'Nenhum cliente cadastrado ainda.'}
+          {search ? 'Nenhum paciente encontrado.' : 'Nenhum paciente cadastrado ainda.'}
         </p>
       )}
 
-      <ul className="client-list">
-        {clients.map((client) => (
-          <li key={client.id}>
-            <Link to={`/clientes/${client.id}`} className="client-row card">
-              <div className="client-row-main">
-                <span className="client-name">{client.name}</span>
-                <span className="small muted">{client.phone}</span>
+      <ul className="patient-list">
+        {patients.map((patient) => (
+          <li key={patient.id}>
+            <Link to={`/pacientes/${patient.id}`} className="patient-row card">
+              <div className="patient-row-main">
+                <span className="patient-name">{patient.name}</span>
+                <span className="small muted">{patient.phone}</span>
               </div>
-              <div className="client-row-next">
-                {client.nextAppointment ? (
+              <div className="patient-row-next">
+                {patient.nextAppointment ? (
                   <span className="small">
-                    Próxima consulta: {formatFull(client.nextAppointment.date)} às {client.nextAppointment.startTime}
+                    Próxima consulta: {formatFull(patient.nextAppointment.date)} às{' '}
+                    {patient.nextAppointment.startTime}
                   </span>
                 ) : (
                   <span className="small muted">Sem consultas agendadas</span>
@@ -81,7 +82,7 @@ export default function Clients() {
         ))}
       </ul>
 
-      {modalOpen && <ClientModal onClose={() => setModalOpen(false)} onSaved={handleCreated} />}
+      {modalOpen && <PatientModal onClose={() => setModalOpen(false)} onSaved={handleCreated} />}
     </div>
   );
 }

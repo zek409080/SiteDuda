@@ -1,6 +1,8 @@
 import { Router } from 'express';
 import { validate } from '../middlewares/validate.js';
 import { clientSchema, clientQuerySchema, idParam } from './schemas.js';
+import { createDocumentRouter } from './documents.routes.js';
+import { clientDocuments } from '../services/documents.service.js';
 import {
   createClient,
   deleteClient,
@@ -60,5 +62,12 @@ router.delete('/:id', validate(idParam, 'params'), async (req, res, next) => {
     next(err);
   }
 });
+
+/* ------------------------------ documentos ------------------------------
+ * Aninhadas sob /api/clients, que ja passa pelo requireAuth. A mecanica de
+ * enviar, abrir e apagar e a mesma das notas e mora em documents.routes.js.
+ * ----------------------------------------------------------------------- */
+
+router.use('/:id/documents', validate(idParam, 'params'), createDocumentRouter(clientDocuments));
 
 export default router;

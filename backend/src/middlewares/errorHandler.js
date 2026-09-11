@@ -13,7 +13,7 @@ export function errorHandler(err, req, res, _next) {
 
   // Violacao de chave estrangeira / registro ausente vindos do Prisma.
   if (err?.code === 'P2025') return res.status(404).json({ error: 'Registro não encontrado' });
-  if (err?.code === 'P2003') return res.status(400).json({ error: 'Cliente informado não existe' });
+  if (err?.code === 'P2003') return res.status(400).json({ error: 'Paciente informado não existe' });
 
   console.error('[erro nao tratado]', err);
   res.status(500).json({

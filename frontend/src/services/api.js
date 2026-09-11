@@ -11,13 +11,15 @@ class ApiError extends Error {
   }
 }
 
-async function request(path, { method = 'GET', body, signal } = {}) {
+async function request(path, { method = 'GET', body, form, signal } = {}) {
   const response = await fetch(`${BASE}${path}`, {
     method,
     signal,
     credentials: 'include', // o cookie de sessao viaja aqui
+    // Envio de arquivo vai sem Content-Type: o navegador precisa montar o
+    // cabecalho com a fronteira (boundary) do multipart sozinho.
     headers: body ? { 'Content-Type': 'application/json' } : undefined,
-    body: body ? JSON.stringify(body) : undefined,
+    body: form ?? (body ? JSON.stringify(body) : undefined),
   });
 
   if (response.status === 204) return null;
@@ -61,14 +63,40 @@ export const api = {
   deleteClient: (id) => request(`/clients/${id}`, { method: 'DELETE' }),
   clientAppointments: (id) => request(`/clients/${id}/appointments`),
 
+  // `dono` e 'clients' ou 'notes': paciente e nota guardam anexos do mesmo
+  // jeito, so muda de quem o arquivo e.
+  listDocuments: (dono, id) => request(`/${dono}/${id}/documents`),
+  uploadDocument: (dono, id, file) => {
+    const form = new FormData();
+    form.append('file', file);
+    return request(`/${dono}/${id}/documents`, { method: 'POST', form });
+  },
+  deleteDocument: (dono, id, documentId) =>
+    request(`/${dono}/${id}/documents/${documentId}`, { method: 'DELETE' }),
+
   listAppointments: (params = {}) => request(`/appointments${query(params)}`),
   summary: (params) => request(`/appointments/summary${query(params)}`),
   createAppointment: (data) => request('/appointments', { method: 'POST', body: data }),
   updateAppointment: (id, data) => request(`/appointments/${id}`, { method: 'PUT', body: data }),
-  deleteAppointment: (id) => request(`/appointments/${id}`, { method: 'DELETE' }),
+  // `scope` diz o alcance dentro de uma serie: one (so este),
+  // following (este e os proximos) ou series (todos).
+  deleteAppointment: (id, scope = 'one') =>
+    request(`/appointments/${id}${query({ scope })}`, { method: 'DELETE' }),
+
+  listNotes: () => request('/notes'),
+  createNote: (data) => request('/notes', { method: 'POST', body: data }),
+  updateNote: (id, data) => request(`/notes/${id}`, { method: 'PUT', body: data }),
+  deleteNote: (id) => request(`/notes/${id}`, { method: 'DELETE' }),
 
   getSettings: () => request('/settings'),
   updateSettings: (data) => request('/settings', { method: 'PUT', body: data }),
 };
+
+/// Endereco do arquivo de um documento. Nao e um link publico: o servidor
+/// so entrega depois de conferir a sessao e que o documento e mesmo daquele
+/// dono. Sem isso, abrir o endereco direto devolve 401.
+export function documentFileUrl(dono, id, documentId, { download = false } = {}) {
+  return `${BASE}/${dono}/${id}/documents/${documentId}/file${download ? '?download=1' : ''}`;
+}
 
 export { ApiError };

@@ -1,4 +1,9 @@
-.agenda { display: flex; flex-direction: column; gap: 18px; max-width: 1100px; }
+/* Centralizada e mais estreita: em tela larga a grade esticada de ponta a
+   ponta deixava cada horario um retangulo enorme e vazio. */
+.agenda { display: flex; flex-direction: column; gap: 18px; max-width: 940px; margin: 0 auto; }
+.agenda-header { display: flex; flex-direction: column; gap: 24px; }
+.status-legend { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; }
+.status-legend .badge { font-size: 0.7rem; }
 
 .agenda-title-row {
   display: flex;
@@ -16,7 +21,7 @@
   flex-wrap: wrap;
 }
 
-.agenda-nav { display: flex; align-items: center; gap: 6px; }
+.agenda-nav { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; min-width: 0; }
 .icon-btn { padding: 8px 12px; font-size: 1rem; line-height: 1; }
 .agenda-period { margin-left: 8px; font-weight: 500; color: var(--text-soft); text-transform: capitalize; }
 
@@ -45,17 +50,18 @@
 .summary-bar {
   display: flex;
   align-items: center;
-  gap: 20px;
-  padding: 12px 18px;
+  gap: 24px;
+  padding: 18px 22px;
   background: var(--surface);
   border: 1px solid var(--border);
-  border-radius: var(--radius-sm);
-  width: fit-content;
+  border-radius: var(--radius);
+  width: 100%;
 }
-.summary-item { display: flex; flex-direction: column; gap: 1px; }
-.summary-value { font-weight: 600; font-size: 0.95rem; }
+.summary-item { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+.summary-item:nth-child(3) { flex: 1; }
+.summary-value { font-weight: 600; font-size: 1.05rem; overflow-wrap: anywhere; font-variant-numeric: tabular-nums; }
 .summary-label { font-size: 0.72rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.04em; }
-.summary-divider { width: 1px; height: 26px; background: var(--border); }
+.summary-divider { width: 1px; height: 34px; background: var(--border); flex: none; }
 
 /* ----------------------------- grade dia/semana ----------------------------- */
 
@@ -69,9 +75,9 @@
 
 .grid-scroll { overflow-x: auto; }
 
-.grid-head, .grid-body { display: grid; grid-template-columns: 56px 1fr; }
+.grid-head, .grid-body { display: grid; grid-template-columns: 48px 1fr; }
 .grid-view:not(.grid-view-day) .grid-head,
-.grid-view:not(.grid-view-day) .grid-body { grid-template-columns: 56px repeat(7, minmax(120px, 1fr)); }
+.grid-view:not(.grid-view-day) .grid-body { grid-template-columns: 48px repeat(7, minmax(96px, 1fr)); }
 
 .grid-head {
   position: sticky;
@@ -81,7 +87,7 @@
   background: var(--surface);
 }
 .grid-day-head {
-  padding: 10px 8px;
+  padding: 12px 6px;
   text-align: center;
   border-left: 1px solid var(--border);
 }
@@ -91,16 +97,20 @@
 
 .grid-body { position: relative; }
 .grid-gutter { border-right: 1px solid var(--border); }
+/* O horario fica centralizado na propria faixa, e nao encostado na linha
+   de cima: assim ele nomeia o bloco de uma hora inteira e nenhum rotulo
+   escapa pelo topo da grade. */
 .grid-hour-label {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
   padding-right: 8px;
   font-size: 0.72rem;
   color: var(--muted);
-  text-align: right;
-  transform: translateY(-7px);
 }
 
 .grid-day-col { position: relative; border-left: 1px solid var(--border); }
-.grid-day-col.is-today { background: rgba(79, 125, 116, 0.035); }
+.grid-day-col.is-today { background: rgba(61, 106, 44, 0.035); }
 
 .grid-slot {
   display: block;
@@ -120,27 +130,31 @@
   z-index: 1;
   display: flex;
   flex-direction: column;
-  gap: 1px;
-  padding: 4px 8px;
+  gap: 0;
+  padding: 3px 7px;
   border: none;
   border-left: 3px solid var(--accent);
   border-radius: 6px;
   background: var(--accent-soft);
   color: var(--accent-dark);
   text-align: left;
+  /* Entrelinha apertada: com a altura da hora reduzida, a do corpo (1.5)
+     empurrava o nome do paciente para fora do bloco. */
+  line-height: 1.2;
   overflow: hidden;
   cursor: pointer;
   transition: filter 0.12s var(--ease), transform 0.12s var(--ease);
 }
 .appt-block:hover { filter: brightness(0.97); transform: translateY(-1px); }
+.appt-compact { flex-direction: row; align-items: baseline; gap: 5px; }
+.appt-compact .appt-time { flex: none; }
 .appt-time { font-size: 0.68rem; font-weight: 600; opacity: 0.85; }
 .appt-name { font-size: 0.82rem; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
-.appt-block.st-AGENDADO  { background: #f0f0ec; border-left-color: #9b9b90; color: #5f5f58; }
-.appt-block.st-CONFIRMADO{ background: #edf3f1; border-left-color: var(--accent); color: var(--accent-dark); }
-.appt-block.st-REALIZADO { background: #eef1ee; border-left-color: #7c8c80; color: #4b5a50; }
-.appt-block.st-CANCELADO { background: #f5f2f1; border-left-color: #c9bdb9; color: #9b8f8c; text-decoration: line-through; }
-.appt-block.st-FALTOU    { background: #f8f1ea; border-left-color: #c99a6d; color: #96745a; }
+.appt-block[class*="st-"] { background: var(--status-bg); border-left-color: var(--status-mark); color: var(--status-text); }
+.appt-block.st-CANCELADO { text-decoration: line-through; }
+.appt-block:focus-visible { outline-offset: -2px; }
+.grid-view > .empty { border: 0; border-top: 1px solid var(--border); border-radius: 0; padding: 24px; }
 
 /* ------------------------------- mes ------------------------------- */
 
@@ -165,6 +179,7 @@
 }
 .month-grid { display: grid; grid-template-columns: repeat(7, 1fr); }
 .month-cell {
+  min-width: 0;
   min-height: 96px;
   padding: 7px 6px;
   border-left: 1px solid var(--border);
@@ -174,7 +189,7 @@
 }
 .month-cell:nth-child(7n+1) { border-left: none; }
 .month-cell:hover { background: var(--surface-soft); }
-.month-cell.is-outside { color: var(--muted); background: var(--bg); }
+.month-cell.is-outside { color: var(--muted); background: var(--surface-soft); }
 .month-cell.is-today .month-day-num {
   display: inline-flex;
   align-items: center;
@@ -196,15 +211,18 @@
   overflow: hidden;
   text-overflow: ellipsis;
 }
-.month-chip.st-CANCELADO { background: #f5f2f1; color: #9b8f8c; text-decoration: line-through; }
-.month-chip.st-REALIZADO { background: #eef1ee; color: #4b5a50; }
-.month-chip.st-FALTOU { background: #f8f1ea; color: #96745a; }
+.month-chip[class*="st-"] { background: var(--status-bg); color: var(--status-text); border-left: 2px solid var(--status-mark); }
+.month-chip.st-CANCELADO { text-decoration: line-through; }
 .month-more { font-size: 0.68rem; color: var(--muted); padding-left: 2px; }
 
 @media (max-width: 860px) {
   .agenda-title-row h1 { font-size: 1.2rem; }
   .new-btn { padding: 9px 13px; font-size: 0.85rem; }
-  .summary-bar { width: 100%; overflow-x: auto; }
+  .summary-bar { width: 100%; gap: 12px; padding: 14px; }
+  .summary-label { font-size: 0.65rem; }
+  .summary-value { font-size: 0.9rem; }
+  .agenda-header { gap: 18px; }
+  .agenda-period { flex-basis: 100%; margin: 8px 0 0; font-size: 0.9rem; }
   .month-cell { min-height: 72px; }
   .month-chip, .month-more { display: none; }
   .month-cell.has-items::after {

@@ -1,0 +1,64 @@
+.patient-form { display: flex; flex-direction: column; gap: 22px; }
+
+/* Cada bloco do cadastro fica visualmente separado, para o formulario nao
+   virar uma parede unica de campos. */
+.form-section {
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: none;
+  border-top: 1px solid var(--border);
+  padding-top: 16px;
+}
+.form-section:first-child { border-top: none; padding-top: 0; }
+.form-section legend {
+  padding: 0;
+  margin-bottom: 12px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--text-soft);
+}
+.section-hint { margin-top: -6px; margin-bottom: 14px; }
+
+.medication-block { margin-top: 4px; margin-bottom: 8px; }
+
+/* Linha repetivel: responsavel, alergia ou medicamento. */
+.list-item {
+  margin-bottom: 12px;
+  padding: 14px 15px 2px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--surface-soft);
+}
+.list-item-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+.list-item-title {
+  font-size: 0.76rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.btn-add {
+  width: 100%;
+  border-style: dashed;
+  border-color: var(--accent-border);
+  color: var(--accent);
+  background: transparent;
+}
+.btn-add:hover:not(:disabled) {
+  background: var(--accent-soft);
+  border-color: var(--accent);
+}
+
+@media (max-width: 560px) {
+  .patient-form .row { grid-template-columns: 1fr; gap: 0; }
+}

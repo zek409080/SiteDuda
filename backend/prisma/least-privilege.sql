@@ -37,7 +37,17 @@ GRANT USAGE ON SCHEMA public TO agenda_app;
 REVOKE CREATE ON SCHEMA public FROM agenda_app;
 
 -- 3. Leitura e escrita apenas nas tabelas da aplicacao.
-GRANT SELECT, INSERT, UPDATE, DELETE ON clients, appointments, settings TO agenda_app;
+GRANT SELECT, INSERT, UPDATE, DELETE ON
+  clients,
+  appointments,
+  settings,
+  client_responsibles,
+  client_allergies,
+  client_medications,
+  client_documents,
+  notes,
+  note_documents
+TO agenda_app;
 
 -- A tabela de controle das migrations e so de leitura para a aplicacao:
 -- o Prisma a consulta ao iniciar, mas quem escreve nela e a migration.
