@@ -155,6 +155,7 @@ export const appointmentQuerySchema = z.object({
 
 export const summaryQuerySchema = z.object({
   today: dateString,
+  nowTime: timeString.optional(),
   weekStart: dateString,
   weekEnd: dateString,
 });

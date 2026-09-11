@@ -3,11 +3,13 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../lib/auth.jsx';
 import { api } from '../services/api.js';
 import AppointmentModal from '../components/AppointmentModal.jsx';
+import QuickNotes from '../components/QuickNotes.jsx';
 import {
   addDays,
   addMonths,
   endOfMonth,
   formatLong,
+  formatFull,
   formatMonthYear,
   hourSlots,
   monthGrid,
@@ -74,10 +76,12 @@ export default function Agenda() {
   }, [range]);
 
   const loadSummary = useCallback(async () => {
-    const today = todayKey();
+    const clock = new Date();
+    const today = `${clock.getFullYear()}-${String(clock.getMonth() + 1).padStart(2, '0')}-${String(clock.getDate()).padStart(2, '0')}`;
+    const nowTime = `${String(clock.getHours()).padStart(2, '0')}:${String(clock.getMinutes()).padStart(2, '0')}`;
     const days = weekDays(today);
     try {
-      const data = await api.summary({ today, weekStart: days[0], weekEnd: days[6] });
+      const data = await api.summary({ today, nowTime, weekStart: days[0], weekEnd: days[6] });
       setSummary(data);
     } catch {
       // o resumo e apenas informativo, nao trava a tela em caso de falha
@@ -95,6 +99,15 @@ export default function Agenda() {
   useEffect(() => {
     loadSummary();
   }, [loadSummary, appointments]);
+
+  useEffect(() => {
+    const timer = window.setInterval(loadSummary, 60000);
+    window.addEventListener('focus', loadSummary);
+    return () => {
+      window.clearInterval(timer);
+      window.removeEventListener('focus', loadSummary);
+    };
+  }, [loadSummary]);
 
   // O aviso some sozinho: e confirmacao, nao algo para a profissional fechar.
   useEffect(() => {
@@ -157,6 +170,7 @@ export default function Agenda() {
   }, [view, cursor]);
 
   return (
+    <div className="agenda-workspace">
     <div className="agenda">
       <header className="agenda-header">
         <div className="agenda-title-row">
@@ -243,6 +257,8 @@ export default function Agenda() {
         />
       )}
     </div>
+    <QuickNotes />
+    </div>
   );
 }
 
@@ -257,7 +273,9 @@ function SummaryBar({ summary }) {
       <div className="summary-divider" />
       <div className="summary-item">
         <span className="summary-value">
-          {summary.next ? `${summary.next.startTime} — ${summary.next.client?.name ?? ''}` : '—'}
+          {summary.next
+            ? `${formatFull(summary.next.date)} às ${summary.next.startTime} — ${summary.next.client?.name ?? ''}`
+            : 'Nenhum agendamento futuro'}
         </span>
         <span className="summary-label">próximo</span>
       </div>

@@ -1,0 +1,21 @@
+.quick-notes { min-width: 0; align-self: start; overflow: hidden; }
+.quick-notes-head { padding: 20px 20px 14px; border-bottom: 1px solid var(--border); }
+.quick-notes-head h2 { font-size: 1rem; margin-bottom: 5px; }
+.quick-notes-text {
+  display: block;
+  width: 100%;
+  min-height: 360px;
+  padding: 18px 20px;
+  border: 0;
+  border-radius: 0;
+  background: var(--surface);
+  color: var(--text);
+  line-height: 1.8;
+  resize: vertical;
+}
+.quick-notes-text::placeholder { color: var(--muted); }
+.quick-notes-text:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
+.quick-notes-status { padding: 12px 20px; border-top: 1px solid var(--border); font-size: 0.73rem; color: var(--muted); background: var(--surface-soft); }
+.quick-notes-error { color: var(--danger); background: var(--danger-soft); }
+@media (max-width: 1399px) { .quick-notes-text { min-height: 220px; } }
+@media (max-width: 560px) { .quick-notes-text { font-size: 16px; } }

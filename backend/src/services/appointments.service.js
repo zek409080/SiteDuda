@@ -330,14 +330,17 @@ export async function deleteAppointment(id, scope = 'one') {
 }
 
 /// Numeros discretos mostrados no topo da agenda.
-export async function getSummary({ today, weekStart, weekEnd }) {
+export async function getSummary({ today, nowTime, weekStart, weekEnd }) {
   const todayUtc = dateOnlyToUtc(today);
+  // O navegador envia data e hora no mesmo fuso. Compatibilidade com clientes
+  // antigos: horario de Sao Paulo, independente do fuso do servidor Railway.
+  const currentTime = nowTime ?? new Intl.DateTimeFormat('en-GB', {
+    timeZone: 'America/Sao_Paulo', hour: '2-digit', minute: '2-digit', hourCycle: 'h23',
+  }).format(new Date());
 
-  const [todayList, weekCount] = await Promise.all([
-    prisma.appointment.findMany({
+  const [todayCount, weekCount, upcoming] = await Promise.all([
+    prisma.appointment.count({
       where: { date: todayUtc, status: { in: BLOCKING_STATUS } },
-      orderBy: { startTime: 'asc' },
-      include: { client: true },
     }),
     prisma.appointment.count({
       where: {
@@ -345,14 +348,21 @@ export async function getSummary({ today, weekStart, weekEnd }) {
         status: { in: BLOCKING_STATUS },
       },
     }),
+    prisma.appointment.findFirst({
+      where: {
+        status: { in: ['AGENDADO', 'CONFIRMADO'] },
+        OR: [
+          { date: todayUtc, startTime: { gte: currentTime } },
+          { date: { gt: todayUtc } },
+        ],
+      },
+      orderBy: [{ date: 'asc' }, { startTime: 'asc' }],
+      include: { client: true },
+    }),
   ]);
 
-  const nowMinutes = new Date().getHours() * 60 + new Date().getMinutes();
-  const upcoming =
-    todayList.find((item) => timeToMinutes(item.startTime) >= nowMinutes) ?? null;
-
   return {
-    todayCount: todayList.length,
+    todayCount,
     weekCount,
     next: upcoming ? serializeAppointment(upcoming) : null,
   };

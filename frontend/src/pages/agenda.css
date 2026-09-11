@@ -1,6 +1,12 @@
 /* Centralizada e mais estreita: em tela larga a grade esticada de ponta a
    ponta deixava cada horario um retangulo enorme e vazio. */
 .agenda { display: flex; flex-direction: column; gap: 18px; max-width: 940px; margin: 0 auto; }
+.agenda-workspace { display: grid; grid-template-columns: minmax(0, 1fr); gap: 24px; max-width: 940px; margin: 0 auto; }
+.agenda-workspace > .agenda { width: 100%; min-width: 0; }
+@media (min-width: 1400px) {
+  .agenda-workspace { grid-template-columns: minmax(0, 940px) 280px; max-width: 1244px; }
+  .agenda-workspace > .quick-notes { margin-top: 68px; }
+}
 .agenda-header { display: flex; flex-direction: column; gap: 24px; }
 .status-legend { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; }
 .status-legend .badge { font-size: 0.7rem; }
