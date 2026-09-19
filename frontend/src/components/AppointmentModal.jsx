@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import Modal from './Modal.jsx';
 import AppointmentForm from './AppointmentForm.jsx';
-import { statusLabel } from '../lib/status.js';
+import { displayStatus, statusLabel } from '../lib/status.js';
 import { formatFull } from '../lib/date.js';
 import { api } from '../services/api.js';
 
@@ -147,9 +147,6 @@ export default function AppointmentModal({ appointment, initial, clients, defaul
         <div className="quick-status">
           <span className="small muted">Atalhos rápidos:</span>
           <div className="quick-status-buttons">
-            <button className="btn btn-ghost" type="button" disabled={submitting} onClick={() => quickStatus('CONFIRMADO')}>
-              Confirmar
-            </button>
             <button className="btn btn-ghost" type="button" disabled={submitting} onClick={() => quickStatus('REALIZADO')}>
               Realizado
             </button>
@@ -162,7 +159,7 @@ export default function AppointmentModal({ appointment, initial, clients, defaul
           </div>
           <div className="spread small muted" style={{ marginTop: 4 }}>
             <span>{formatFull(appointment.date)} · {appointment.startTime}</span>
-            <span className={`badge st-${appointment.status}`}>{statusLabel(appointment.status)}</span>
+            <span className={`badge st-${displayStatus(appointment.status)}`}>{statusLabel(appointment.status)}</span>
           </div>
           {isRecurring && (
             <p className="small muted" style={{ marginTop: 6 }}>

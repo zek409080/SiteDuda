@@ -200,8 +200,7 @@ a { color: inherit; text-decoration: none; }
   border: 1px solid transparent;
 }
 /* Uma paleta de status compartilhada por badges e todas as vistas da agenda. */
-.st-AGENDADO   { --status-bg: #eef7e9; --status-text: #41672e; --status-border: #d4e7c9; --status-mark: #83aa65; }
-.st-CONFIRMADO { --status-bg: #edf4ff; --status-text: #285e9b; --status-border: #cedeF5; --status-mark: #5b8fc8; }
+.st-AGENDADO   { --status-bg: #edf4ff; --status-text: #285e9b; --status-border: #cedef5; --status-mark: #5b8fc8; }
 .st-REALIZADO  { --status-bg: #e5f1eb; --status-text: #20543b; --status-border: #bed7ca; --status-mark: #2b7050; }
 .st-CANCELADO  { --status-bg: #fff1ee; --status-text: #a33f36; --status-border: #f2d3cd; --status-mark: #df8b80; }
 .st-FALTOU     { --status-bg: #f7e7e9; --status-text: #8e2938; --status-border: #e7bcc4; --status-mark: #a83c4d; }

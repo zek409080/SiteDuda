@@ -6,7 +6,7 @@ import PatientModal from '../components/PatientModal.jsx';
 import AppointmentModal from '../components/AppointmentModal.jsx';
 import DocumentsPanel from '../components/DocumentsPanel.jsx';
 import { formatFull } from '../lib/date.js';
-import { statusLabel } from '../lib/status.js';
+import { displayStatus, statusLabel } from '../lib/status.js';
 import { patientAppointments } from '../lib/patientAppointments.js';
 import { deletedMessage, savedMessage } from '../lib/appointmentFeedback.js';
 import './patient-detail.css';
@@ -293,7 +293,7 @@ export default function PatientDetail() {
                     </div>
                     <div className="spread">
                       <span className="small">{item.type}</span>
-                      <span className={`badge st-${item.status}`}>{statusLabel(item.status)}</span>
+                      <span className={`badge st-${displayStatus(item.status)}`}>{statusLabel(item.status)}</span>
                     </div>
                     {item.notes && <p className="history-note small muted">{item.notes}</p>}
                   </button>

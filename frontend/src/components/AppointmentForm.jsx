@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { STATUS, STATUS_LIST } from '../lib/status.js';
+import { displayStatus, STATUS, STATUS_LIST } from '../lib/status.js';
 import { addMonths, minutesToTime, timeToMinutes, todayKey, WEEKDAYS_SHORT } from '../lib/date.js';
 import './appointment-form.css';
 
@@ -42,7 +42,7 @@ export default function AppointmentForm({ initial, clients, defaultDuration, isE
       startTime,
       endTime: initial?.endTime ?? suggestEnd(startTime, defaultDuration),
       type: initial?.type ?? 'Consulta',
-      status: initial?.status ?? 'AGENDADO',
+      status: displayStatus(initial?.status ?? 'AGENDADO'),
       notes: initial?.notes ?? '',
     };
   });

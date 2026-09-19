@@ -20,7 +20,7 @@ import {
   weekLabel,
   WEEKDAYS_SHORT,
 } from '../lib/date.js';
-import { STATUS_LIST, statusLabel } from '../lib/status.js';
+import { displayStatus, STATUS_LIST, statusLabel } from '../lib/status.js';
 import { deletedMessage, savedMessage } from '../lib/appointmentFeedback.js';
 import './agenda.css';
 
@@ -356,7 +356,7 @@ function GridView({ days, workStart, workEnd, appointments, loading, onSlotClick
                   <button
                     key={appt.id}
                     type="button"
-                    className={`appt-block st-${appt.status} ${compact ? 'appt-compact' : ''}`}
+                    className={`appt-block st-${displayStatus(appt.status)} ${compact ? 'appt-compact' : ''}`}
                     style={{ top, height }}
                     title={`${appt.startTime} — ${appt.client?.name ?? ''} — ${statusLabel(appt.status)}`}
                     onClick={() => onAppointmentClick(appt)}
@@ -417,7 +417,7 @@ function MonthView({ cursor, appointments, onPickDay, onOpenAppointment }) {
                 {items.slice(0, 3).map((appt) => (
                   <span
                     key={appt.id}
-                    className={`month-chip st-${appt.status}`}
+                    className={`month-chip st-${displayStatus(appt.status)}`}
                     onClick={(e) => {
                       e.stopPropagation();
                       onOpenAppointment(appt);
