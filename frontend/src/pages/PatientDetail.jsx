@@ -7,6 +7,7 @@ import AppointmentModal from '../components/AppointmentModal.jsx';
 import DocumentsPanel from '../components/DocumentsPanel.jsx';
 import { formatFull } from '../lib/date.js';
 import { statusLabel } from '../lib/status.js';
+import { patientAppointments } from '../lib/patientAppointments.js';
 import { deletedMessage, savedMessage } from '../lib/appointmentFeedback.js';
 import './patient-detail.css';
 
@@ -33,6 +34,19 @@ export default function PatientDetail() {
   const [appointmentModal, setAppointmentModal] = useState(null);
   const [feedback, setFeedback] = useState('');
   const [patients, setPatients] = useState([]);
+  const [now, setNow] = useState(() => new Date());
+
+  useEffect(() => {
+    if (tab !== 'appointments') return undefined;
+    const refreshClock = () => setNow(new Date());
+    refreshClock();
+    const timer = window.setInterval(refreshClock, 60000);
+    window.addEventListener('focus', refreshClock);
+    return () => {
+      window.clearInterval(timer);
+      window.removeEventListener('focus', refreshClock);
+    };
+  }, [tab]);
 
   const load = useCallback(() => {
     setLoading(true);
@@ -76,6 +90,7 @@ export default function PatientDetail() {
   const responsibles = patient.responsibles ?? [];
   const allergies = patient.allergies ?? [];
   const medications = patient.medications ?? [];
+  const { next, previous } = patientAppointments(history, now);
 
   return (
     <div className="patient-detail">
@@ -245,7 +260,7 @@ export default function PatientDetail() {
       {tab === 'appointments' && (
         <section className="tab-panel-plain">
           <div className="spread">
-            <h2>Histórico</h2>
+            <h2>Atendimentos</h2>
             <button
               className="btn btn-primary"
               type="button"
@@ -257,11 +272,15 @@ export default function PatientDetail() {
 
           {feedback && <p className="success-text">{feedback}</p>}
 
-          {history.length === 0 ? (
-            <p className="empty">Nenhum atendimento registrado ainda.</p>
-          ) : (
+          {[
+            { title: 'Próxima consulta', items: next ? [next] : [], empty: 'Nenhuma consulta futura agendada.' },
+            { title: 'Atendimentos anteriores', items: previous, empty: 'Nenhum atendimento anterior.' },
+          ].map((group) => (
+            <section className="tab-panel-plain" key={group.title} aria-label={group.title}>
+            <h3>{group.title}</h3>
+            {group.items.length === 0 ? <p className="empty small">{group.empty}</p> : (
             <ul className="history-list">
-              {history.map((item) => (
+              {group.items.map((item) => (
                 <li key={item.id}>
                   <button
                     className="history-row card"
@@ -281,7 +300,9 @@ export default function PatientDetail() {
                 </li>
               ))}
             </ul>
-          )}
+            )}
+            </section>
+          ))}
         </section>
       )}
 
